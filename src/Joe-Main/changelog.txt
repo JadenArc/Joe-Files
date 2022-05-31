@@ -1,0 +1,109 @@
+//
+// changelog - writen by jaden
+// anything with a letter at the end is a hotfix
+//
+
+////// dont expect this to be updated THAT often
+
+WHATS NEW
+
+--------------------------------
+
+v2.9: reorganizing update
+Jaden has been thinking shit and re-organized this file
+
+- Lazyness lololololo (lies im making it later)
+
+--------------------------------
+
+v2.5: the kinda big update
+- custom rankings is now updated and rewriten because i dont want to reuse stuff that isnt mine :3
+- custom ping and fps counter (ping may be not accurate)
+- you now control the menu with your camera inputs (2.2.10 feature!)
+- removed mostly the kart effects and replaced the kill effect with a stock explosion
+- spring twirl! (like you rotate when being on the spring state)
+- super command being updated so the super flag wont be removed
+- updated the spectator text (again)
+- suicide command now depends on your state (water or ground)
+- init.lua being more organized (?)
+- removed custom emblems due being useless !!!!!
+- bonk on walls if enabled
+- shield command now starts a sound
+- you will need to have the emeralds to use the super command
+- supercolors being re-added
+- you can enable the custom hud made by me :3
+- no longer io-things since game commits resync (even if i use 2 game instances, it happens)
+- removed motd since its kinda useless
+
+--------------------------------
+
+v2.0: the 'renamed' update
+- ive been thinking it, and since 1.7 the file should be named v2.0
+- srb2kart sneakerflames when going so fast
+- the 'resources' folder is now created for reusable things you can use
+- removed the metal sonic recording because no one plays bcz1
+- inputs and speedometer are now in different positions
+- custom hud made by your server addon maker, jaden :3
+- ping section added on the rankings (2.2.10) (v2.5 note: not really.)
+- init.lua added so it can be more "optimized"?
+
+--------------------------------
+
+v1.7.3: a normal update
+- added a vfx when someone does 'kill' on you (ported from kart)
+- collect red rings on singleplayer stages! (replaces emblems on multiplayer)
+- momentum options are now separated (turn momentum on, vfx, and the gameplay changes of it)
+- fixed the menu not greying out some things on the player menu
+- fixed the speedometer flags on non-green resolutions
+
+--------------------------------
+
+v1.7.2: the 'fuck you v1.7.1, no one ever used it and it was never published to the public and only to furry' update
+- added (again) rally, useful for trolli- i mean nothing
+- removed some tips, since the commands for it died and/or removed
+- super can now be toggled for a specific player, or for all players
+- time attack's hud is now on the bottom right of your screen (check file for creds)
+- speedometer added, can be toggleable
+- you can now grab anyone if the tailsgrab cvar is enabled (admins can only toggle the function)
+- new tips i guess
+- "redid" the text when you finish the stage and else
+- a new hud folder on the server files
+- changed the MOTD's graphic
+- updated MOTD info since furry likes changing his discord nickname and tag
+- added shoes and invuln commands (again)
+- red star rings replaces multiplayer emblems, i like it for some reason
+- added a new option for PCollisions: Solid
+- a better and simple ranking hud
+
+--------------------------------
+
+v1.7: 'a pretty cool "major" version that should be referenced as v2.0 but i wont accept it' update
+- added lucariotools, with a menu to make server commands more accessible (reused with permission)
+// note with this thing: this always gets updated and im not updating my ass with it, i just choose useful info and merge it in
+
+- removed some scripts due to its less usage on the server
+- anglestand deleted since simple mode exists
+- afk system being implemented
+- chat muting now works
+- kart styled tab hud
+- admintools & funtools being merged and rewriten
+- momentum is in again lol
+- nametags are better xd
+- and a lot of shit
+
+--------------------------------
+
+v1.64a
+- cut a singular second out of one of the music tracks because it wasnt looping properly
+- updated autoexit max time + default time to 5 hours
+
+----------------------------------------------------------------------------------------
+
+v1.64
+- WOW A CHANGELOG HOLY FUCK
+- added sloperollangle
+- added anglestand (please just put this in the vanilla game already :dickcheese:)
+- updated motd stuff because it was at least 2 months out of date
+- added castlevania quote in the tips thing because im joe also piss off for asking
+- added dofor so i can practice my get permabanned from the ms dofor% runs
+- removed super flickies because they did nothing and broke flying character's stamina
