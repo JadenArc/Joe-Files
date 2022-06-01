@@ -7,6 +7,10 @@ end
 
 dofile("base.lua")
 
+//
+// HUD stuff...
+//
+
 folder = "HUD/Custom Rankings"
 dofolder("customrankings_coop.lua")
 dofolder("customrankings_match.lua")
@@ -19,10 +23,21 @@ dofolder("titlecard.lua")
 folder = "HUD"
 dofolder("customhud.lua")
 
+//
+// Gameplay stuff...
+//
+
+folder = "Gameplay/FunkyTools"
+dofolder("funky_logic.lua")
+dofolder("funky_cmds.lua")
+
 folder = "Gameplay"
-dofolder("funkytools.lua")
 dofolder("funnydeath.lua")
 dofolder("mpemblems.lua")
+
+//
+// Misc stuff...
+//
 
 folder = "Misc"
 dofolder("customchat.lua")

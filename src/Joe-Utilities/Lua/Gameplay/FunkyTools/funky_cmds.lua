@@ -3,40 +3,34 @@
 -- something.
 local onlylevel = "You must be in a level to use this."
 
--- from terminal.
-local FloatNumber = function(src)
-	if src == nil then return nil end
-	
-	if not src:find("^-?%d+%.%d+$") then -- not a valid number
-		if tonumber(src) then
-			return tonumber(src)*FRACUNIT
-		else
-			return nil
-		end
-	end
-
-	local decPlace = src:find("%.")
-	local whole = tonumber(src:sub(1, decPlace-1))*FRACUNIT
-	local dec = src:sub(decPlace + 1)
-	local decNumber = tonumber(dec)*FRACUNIT
-
-	for i = 1, dec:len() do
-		decNumber = $1 / 10
-	end
-
-	if src:find("^-") then
-		return whole - decNumber
-	else
-		return whole + decNumber
-	end
-end
-
 //
 -- Let's start with the admin-only commands.
 // 
 
+-- emeralds, lol...
+CV_RegisterVar({
+	name = "emeralds", 
+	defaultvalue = "No",
+	flags = CV_NETVAR|CV_CALL|CV_NOINIT,
+	possiblevalue = CV_YesNo, 
+	func = function(var)
+		local emflags = EMERALD1|EMERALD2|EMERALD3|EMERALD4|EMERALD5|EMERALD6|EMERALD7
+
+		if var.value == 1 then
+			emeralds = $ | (emflags)
+			S_StartSound(nil, sfx_cgot)
+			print("The emeralds were" .. "\x8B spawned!" .. "\x80 Now you can be super.")
+
+		elseif var.value == 0 then
+			emeralds = $ & ~(emflags)
+			S_StartSound(nil, sfx_lose)
+			print("The emeralds suddenly" .. "\x85 vanished!" .. "\x80 Some wacky admin did it...")
+		end
+	end
+})
+
 -- Kill command, admins can kill players if they want to.
-COM_AddCommand('kill', function(player, target)
+local function CMD_KillCommand(player, target)
     if target == nil then
         CONS_Printf(player, "kill <node>: Kills the node. (Use 'nodes' on the console to see which nodes are which.)")
         return
@@ -86,45 +80,11 @@ COM_AddCommand('kill', function(player, target)
 			P_DamageMobj(target.mo, nil, nil, 1, DMG_INSTAKILL)
 		end
     end
-end, 1)
-
--- GodMode, self-explanatory.
-COM_AddCommand("god", function(player)
-	if not (gamestate == GS_LEVEL) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
-
-	if (player.force_godmode == false) then
-		player.force_godmode = true
-	else
-		player.force_godmode = false
-	end
-
-	local message = string.format("%s %s.", "God Mode", (player.force_godmode) and "enabled" or "disabled")
-	CONS_Printf(player, message)
-end, 1)
-
--- Noclip, self-explanatory too.
-COM_AddCommand("noclip", function(player)
-	if not (gamestate == GS_LEVEL) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
-
-	if (player.force_noclip == false) then
-		player.force_noclip = true
-	else
-		player.force_noclip = false
-	end
-
-	local message = string.format("%s %s.", "Noclipping Mode", (player.force_noclip) and "enabled" or "disabled")
-	CONS_Printf(player, message)
-
-end, 1)
+end
+COM_AddCommand("kill", CMD_KillCommand, COM_ADMIN)
 
 -- dofor, executes commands on other player's console. Not intended for bad use.
-COM_AddCommand('dofor', function(player, arg1, arg2)
+local function CMD_DoforCommand(player, arg1, arg2)
     if (arg1 == nil) then
         CONS_Printf(player, 'dofor <node/all/server> <command>: Inserts a command on the selected node.')
         return
@@ -154,10 +114,11 @@ COM_AddCommand('dofor', function(player, arg1, arg2)
     arg1 = players[arg1]
 
     COM_BufInsertText(arg1, arg2)
-end, 1)
+end
+COM_AddCommand('dofor', CMD_DoforCommand, COM_ADMIN)
 
 -- goto, go to a player's coordinates.
-COM_AddCommand('goto', function(player, target)
+local function CMD_GotoCommand(player, target)
     if target == nil then
         CONS_Printf(player, "goto <node>: Goes to the given player's coordinates")
         return
@@ -180,10 +141,11 @@ COM_AddCommand('goto', function(player, target)
 		P_FlashPal(player, PAL_MIXUP, 10)
 		S_StartSound(player.realmo, sfx_litng1) -- again
     end
-end, 1)
+end
+COM_AddCommand('goto', CMD_GotoCommand, 1)
 
 -- rally, teleport every player to your location.
-COM_AddCommand("rally", function(player)
+local function CMD_RallyCommand(player)
 	if not player.mo then
 		CONS_Printf(player, "You don't exist, so players can't teleport to you now.")
 		return
@@ -200,10 +162,11 @@ COM_AddCommand("rally", function(player)
 	end
 	
 	print(JoeBase.GetPlayerName(player, false, false) .. "\x80 rallied everyone to them.")
-end, COM_ADMIN)
+end
+COM_AddCommand("rally", CMD_RallyCommand, COM_ADMIN)
 
 -- changemus, exactly what is says on the tin.
-COM_AddCommand('changemus', function(player, music)
+local function CMD_ChangeMusicCommand(player, music)
     if music == nil then
         CONS_Printf(player, 'changemus <musicid>: Changes music for everyone.')
         return
@@ -216,10 +179,11 @@ COM_AddCommand('changemus', function(player, music)
     end
 
     chatprint(JoeBase.GetPlayerName(player, true, false) .. "\x80 has changed the music to \x86" .. music)
-end, 1)
+end
+COM_AddCommand('changemus', CMD_ChangeMusicCommand, 1)
 
 -- scaleto, troll someone by changing its size
-COM_AddCommand("scaleto", function(p, target, scale)
+local function CMD_ScaleToCommand(p, target, scale)
 	local nScale = FloatNumber(scale)
 
     if target == nil then
@@ -250,24 +214,11 @@ COM_AddCommand("scaleto", function(p, target, scale)
     if JoeBase.IsValid(target.mo) then
 		target.mo.destscale = nScale
 	end
-end, 1)
-
--- changegrav, as know for some vanilla commands not being modified. Fuck you game. (lame cvar too!)
-CV_RegisterVar({
-	name = "changegrav",
-	defaultvalue = "0.5", -- FRACUNIT/2
-	flags = CV_NETVAR|CV_CALL|CV_NOINIT|CV_FLOAT,
-	possiblevalue = nil,
-	func = function(var)
-		// if youre in a level, run the function!
-		if (gamestate == GS_LEVEL) then
-			gravity = var.value
-		end
-	end
-})
+end
+COM_AddCommand("scaleto", CMD_ScaleToCommand, 1)
 
 -- spawnobject, self-explanatory.
-COM_AddCommand('spawnobject', function(player, object)
+local function CMD_SpawnobjectCommand(player, object)
     if object == nil then
         CONS_Printf(player, "spawnobject" .. "\x82 <object>" .. "\x80" .. ": Spawns object via MT_* \n" ..
 							"Go to https://wiki.srb2.org/wiki/List_of_Object_types to get a list of Object Types."
@@ -291,19 +242,21 @@ COM_AddCommand('spawnobject', function(player, object)
  		result.angle = player.mo.angle
 		P_SetScale(result, player.mo.scale)
     end
-end, 1)
+end
+COM_AddCommand('spawnobject', CMD_SpawnobjectCommand, 1)
 
 -- killallenemies, you know the rules.
-COM_AddCommand('killallenemies', function(player)
+local function CMD_KillEnemiesCommand(player)
     for object in mobjs.iterate("mobj") do
         if (object.flags & MF_ENEMY) or (object.flags & MF_BOSS) then
             P_KillMobj(object, nil, player.mo)
         end
     end
-end, 1)
+end
+COM_AddCommand('killallenemies', CMD_KillEnemiesCommand, 1)
 
 -- print, and so do i.
-COM_AddCommand('print', function(player, typeof, message)
+local function CMD_DoPrint(player, typeof, message)
 	if not typeof then
 		CONS_Printf(player, "print <type> <message>: print something to the console")
 		CONS_Printf(player, "types: Standard, Notice, Warning, Error")
@@ -324,29 +277,106 @@ COM_AddCommand('print', function(player, typeof, message)
 	else
 		print(message)
 	end
-end, 1)
+end
+COM_AddCommand('print', CMD_DoPrint, 1)
 
--- emeralds, lol...
-CV_RegisterVar({
-	name = "emeralds", 
-	defaultvalue = "No",
-	flags = CV_NETVAR|CV_CALL|CV_NOINIT,
-	possiblevalue = CV_YesNo, 
-	func = function(var)
-		local emflags = EMERALD1|EMERALD2|EMERALD3|EMERALD4|EMERALD5|EMERALD6|EMERALD7
+local function CMD_FreezeCommand(player, target)
+	if (target == nil) then
+        CONS_Printf(player, "freeze <node/all>: Freezes the player, wow!")
+        return
+    end
 
-		if var.value == 1 then
-			emeralds = $ | (emflags)
-			S_StartSound(nil, sfx_cgot)
-			print("The emeralds were" .. "\x8B spawned!" .. "\x80 Now you can be super.")
-
-		elseif var.value == 0 then
-			emeralds = $ & ~(emflags)
-			S_StartSound(nil, sfx_lose)
-			print("The emeralds suddenly" .. "\x85 vanished!" .. "\x80 Some wacky admin did it...")
-		end
+    if not (player.mo) then
+		CONS_Printf(player, "You don't exist, so you won't freeze players for trolling.")
+		return
 	end
-})
+
+	local all 
+
+    if (target == "all") then
+    	for allplayers in players.iterate do
+    		if not JoeBase.IsValid(allplayers.mo) then
+    			CONS_Printf(player, "This can't be executed! (some players may be dead?)")
+    			return
+    		end
+
+    		all = allplayers
+
+    		if (allplayers.is_frozen) then
+    			allplayers.is_frozen = false
+    		else
+    			allplayers.is_frozen = true
+    		end
+    	end
+
+    	local message = (all.is_frozen) and "froze" or "unfroze"
+
+	   	print(JoeBase.GetPlayerName(player, false, false) .. "\x80 " .. message .. " all players!")
+    	return
+    end
+
+    target = tonumber(target)
+
+    if (target > 32 or target < 0) then return end
+
+     if players[target] == nil then 
+    	CONS_Printf(player, "That player doesn't exist! Aborting...")
+    	return
+    end
+
+	target = players[target]
+
+	if JoeBase.IsValid(target.mo) then
+		if (target.is_frozen) then
+			target.is_frozen = false
+
+			CONS_Printf(target, JoeBase.GetPlayerName(player, false, false) .. "\x80 unfroze you! Thank him for that!")
+		else
+			target.is_frozen = true
+
+			CONS_Printf(target, JoeBase.GetPlayerName(player, false, false) .. "\x80 froze you! Darn...")
+		end
+
+	end
+end
+COM_AddCommand("freeze", CMD_FreezeCommand, COM_ADMIN)
+
+-- GodMode, self-explanatory.
+local function CMD_GodToggle(player)
+	if not (gamestate == GS_LEVEL) then
+		CONS_Printf(player, onlylevel)
+		return
+	end
+
+	if (player.force_godmode == false) then
+		player.force_godmode = true
+	else
+		player.force_godmode = false
+	end
+
+	local message = string.format("%s %s.", "God Mode", (player.force_godmode) and "enabled" or "disabled")
+	CONS_Printf(player, message)
+end
+COM_AddCommand("god", CMD_GodToggle, 1)
+
+-- Noclip, self-explanatory too.
+local function CMD_NoclipToggle(player)
+	if not (gamestate == GS_LEVEL) then
+		CONS_Printf(player, onlylevel)
+		return
+	end
+
+	if (player.force_noclip == false) then
+		player.force_noclip = true
+	else
+		player.force_noclip = false
+	end
+
+	local message = string.format("%s %s.", "Noclipping Mode", (player.force_noclip) and "enabled" or "disabled")
+	CONS_Printf(player, message)
+
+end
+COM_AddCommand("noclip", CMD_NoclipToggle, 1)
 
 //
 -- funtools.lua starts here, intended for all player usage.
@@ -586,69 +616,3 @@ COM_AddCommand("invuln", function(player, time)
 		S_StartSound(player.mo, sfx_3db06)
 	end
 end)
-
-/*
-
-	Thinkers (for some reason)
-	This is just stupid lol
-
-*/
-
-// force these things, and keep them for level change.
-local P_FlagThink = function(player)
-	player.force_godmode = $ or false
-	player.force_noclip = $ or false
-	player.force_colorize = $ or false
-
-	// chessy mode
-	if (player.force_godmode == true) then
-		player.pflags = $ | PF_GODMODE
-	else
-		player.pflags = $ &~ PF_GODMODE
-	end
-
-	// noclippers
-	if (player.force_noclip == true) then
-		player.pflags = $ | PF_NOCLIP
-	else
-		player.pflags = $ &~ PF_NOCLIP
-	end
-
-	// yeah, dont error out with this
-	if not JoeBase.IsValid(player.mo) then return end
-
-	if (player.force_colorize == true) then
-		player.mo.colorized = true
-	else
-		player.mo.colorized = false
-	end
-end
-
-local P_ForcedEffect = do
-	for player in players.iterate do
-		local mo = player.mo
-		local scaled = (3*FRACUNIT)/2
-
-		if not JoeBase.IsValid(mo) then continue end
-
-		if (player.force_godmode) then
-			local ghost = P_SpawnGhostMobj(mo)
-			ghost.fuse = 2
-			ghost.frame = $ | (FF_ADD|FF_TRANS30)
-
-			ghost.spritexscale = scaled
-			ghost.spriteyscale = scaled
-
-			P_TeleportMove(ghost, mo.x, mo.y, mo.z)
-		end
-
-		if (player.force_noclip) then
-			mo.frame = $ | FF_TRANS70
-		else
-			mo.frame = $ &~ FF_TRANS70
-		end
-	end
-end
-
-addHook("PlayerThink", P_FlagThink)
-addHook("PostThinkFrame", P_ForcedEffect)

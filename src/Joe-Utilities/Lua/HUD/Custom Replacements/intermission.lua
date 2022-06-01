@@ -161,15 +161,17 @@ local I_Ticker = function()
 
 	-- Cache sum stuff
 	if (inter_tics == 1) then
-		local ring_count = (mapheaderinfo[gamemap].typeoflevel & TOL_NIGHTS) and consoleplayer.totalmarescore or max(0, consoleplayer.rings * 100)
+		local ring_count = max(0, consoleplayer.rings * 100)
 
 		-- NiGHTS or Special Stages. (logic, since it isnt actually drawn.)
-		if (map_bonustype == -1) then
-			I_DoBonus(0, ring_count,  "")
-			I_DoBonus(0, 		  0,  "")
-			I_DoBonus(1, 		nil, nil)
+		if (map_bonustype == -1) or I_IsSpecialStage(gamemap) then
+			local nights_count = (mapheaderinfo[gamemap].typeoflevel & TOL_NIGHTS) and consoleplayer.totalmarescore or ring_count
 
-			I_DoBonus(2, 		  0,  "")
+			I_DoBonus(0, nights_count,  "")
+			I_DoBonus(0, 		    0,  "")
+			I_DoBonus(1, 		  nil, nil)
+
+			I_DoBonus(2, 		    0,  "")
 			
 		-- Time bonus
 		elseif (map_bonustype == 0) then
@@ -266,8 +268,6 @@ local IH_DrawIntermission = function(v, stagefailed)
 	// Zigzags.
 	//
 
-	local colormap = v.getColormap(TC_DEFAULT, (mapheaderinfo[gamemap].levelflags & LF_WARNINGTITLE) and SKINCOLOR_CRIMSON or consoleplayer.skincolor)
-
 	local zigzag, zztext, zztext_flip, colormap = V_GetZigPatch(v, consoleplayer)
 
 	local zz_offs = inter_tics % zigzag.height
@@ -310,7 +310,7 @@ local IH_DrawIntermission = function(v, stagefailed)
 	local str = string.format("%s\x80 got", (string.len(player_name) > 8) and "\x82You" or player_name)
 	local str_act = string.format("%s", has_act and "through" or "through the act.")
 
-	V_CenterLevelTitle(v, yoffs, str)
+	V_AlignLevelTitle(v, 160, yoffs, str, "center")
 
 	-- are we on a special stage?
 	if I_IsSpecialStage(gamemap) then
@@ -331,7 +331,7 @@ local IH_DrawIntermission = function(v, stagefailed)
 			str_st = "a Chaos Emerald!"
 		end
 
-		V_CenterLevelTitle(v, yoffs, str_st)
+		V_AlignLevelTitle(v, 160, yoffs, str_st, "center")
 		V_DrawEmeralds(v)
 	
 	-- otherwise, if we are on a normal level...
@@ -339,14 +339,13 @@ local IH_DrawIntermission = function(v, stagefailed)
 
 		yoffs = $ + 18
 
-		V_CenterLevelTitle(v, yoffs, str_act)
+		V_AlignLevelTitle(v, 160, yoffs, str_act, "center")
 
 		if has_act then
-			local act_patch = v.cachePatch(string.format("TTL%.2d", has_act))
-			local flags = V_YELLOWMAP
+			local xoffs = (has_act > 9) and 10 or 0
 
-			v.drawString(160, 62, "Act", V_YELLOWMAP|V_ALLOWLOWERCASE, "center")
-			V_DrawLevelActNum(v, 160, 74, has_act, true)
+			v.drawString(160 - xoffs, 74, "Act", V_YELLOWMAP|V_ALLOWLOWERCASE, "right")
+			V_DrawLevelActNum(v, 166 - xoffs, 64, has_act)
 		end
 	end
 

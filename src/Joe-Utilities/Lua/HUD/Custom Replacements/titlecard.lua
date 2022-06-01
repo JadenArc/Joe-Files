@@ -56,17 +56,17 @@ local TH_DrawTitle = function(v, player, ticker, endticker)
 	// Level Title and act number
 	//
 
-	V_CenterLevelTitle(v, 10, level_title)
+	V_AlignLevelTitle(v, 160, 10, level_title, "center")
 	
 	if not (has_zone) then
-		V_CenterLevelTitle(v, 32, "Zone")
-	else
-		V_CenterLevelTitle(v, 32, "The Act")
+		V_AlignLevelTitle(v, 160, 32, "Zone", "center")
 	end
 
 	if (act_number) then
-		v.drawString(164, 172, "Act", V_YELLOWMAP|V_ALLOWLOWERCASE, "right")
-		V_DrawLevelActNum(v, 170, 162, act_number)
+		local xoffs = (act_number > 9) and 10 or 0
+
+		v.drawString(160 - xoffs, 172, "Act", V_YELLOWMAP|V_ALLOWLOWERCASE, "right")
+		V_DrawLevelActNum(v, 166 - xoffs, 162, act_number)
 	end
 
 	//

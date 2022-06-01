@@ -13,12 +13,14 @@ local function V_GetZigPatch(v, player)
 		zigzag_text = v.cachePatch("J_ZZTEXT")
 		zigzag_text_flip = v.cachePatch("J_ZZTEXTF")
 
-		colormap = v.getColormap(TC_DEFAULT, player.skincolor)
+		local colornum = (player.skincolor) or R_GetColorByName(CV_FindVar("color").string)
+
+		colormap = v.getColormap(TC_DEFAULT, colornum)
 	else
 		zigzag_text = v.cachePatch("JW_ZZTEXT")
 		zigzag_text_flip = v.cachePatch("JW_ZZTEXTF")
 
-		colormap = v.getColormap(TC_DEFAULT, SKINCOLOR_RED)
+		colormap = v.getColormap(TC_DEFAULT, SKINCOLOR_SALMON)
 	end
 
 	return zigzag, zigzag_text, zigzag_text_flip, colormap
@@ -26,7 +28,7 @@ end
 rawset(_G, "V_GetZigPatch", V_GetZigPatch)
 
 -- flags aint necessary for this one.
-local function V_DrawLevelActNum(v, x, y, num, center)
+local function V_DrawLevelActNum(v, x, y, num)
 	if (num > 99) then return end
 
 	// cache act numbers for level titles
@@ -73,9 +75,17 @@ end
 rawset(_G, "V_DrawLevelActNum", V_DrawLevelActNum)
 
 -- another shortcut.
-local function V_CenterLevelTitle(v, y, str)
-	local center = v.levelTitleWidth(str) / 2
+local function V_AlignLevelTitle(v, x, y, str, type)
+	local align = v.levelTitleWidth(str)
 
-	v.drawLevelTitle(160 - center, y, str, 0)
+	if (type == "right")
+		x = $ - align
+	elseif (type == "center")
+		x = $ - (align / 2)
+	else
+		return v.drawLevelTitle(x, y, str, 0)
+	end
+
+	v.drawLevelTitle(x, y, str, 0)
 end
-rawset(_G, "V_CenterLevelTitle", V_CenterLevelTitle)
+rawset(_G, "V_AlignLevelTitle", V_AlignLevelTitle)
