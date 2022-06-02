@@ -184,7 +184,7 @@ COM_AddCommand('changemus', CMD_ChangeMusicCommand, 1)
 
 -- scaleto, troll someone by changing its size
 local function CMD_ScaleToCommand(p, target, scale)
-	local nScale = FloatNumber(scale)
+	local nScale = J_DoFloatNumber(scale)
 
     if target == nil then
         CONS_Printf(p, "scale <target> <value>: Make someone bigger or smaller")
@@ -577,7 +577,7 @@ end)
 
 -- scale, for all players
 COM_AddCommand("scale", function(player, scale)
-	local nScale = FloatNumber(scale)
+	local nScale = J_DoFloatNumber(scale)
 	
 	if scale == nil then
 		CONS_Printf(player, "scale <value>: Change your scale by setting a number!")
