@@ -27,6 +27,31 @@ local function V_GetZigPatch(v, player)
 end
 rawset(_G, "V_GetZigPatch", V_GetZigPatch)
 
+// yeah.
+local function V_LevelActNumWidth(v, num)
+	local result = 0
+
+	// cache act numbers for level titles
+	local ttlnum = {}
+	
+	for i = 0, 10 do
+		local buffer = string.format("TTL%.2d", i)
+		ttlnum[i] = v.cachePatch(buffer)
+	end
+
+	if (num == 0) then
+		result = ttlnum[num].width
+	end
+
+	while (num > 0 and num <= 99) do
+		result = $ + ttlnum[num % 10].width
+		num = $ / 10
+	end
+
+	return result
+end
+rawset(_G, "V_LevelActNumWidth", V_LevelActNumWidth)
+
 -- flags aint necessary for this one.
 local function V_DrawLevelActNum(v, x, y, num)
 	if (num > 99) then return end
@@ -39,22 +64,6 @@ local function V_DrawLevelActNum(v, x, y, num)
 		ttlnum[i] = v.cachePatch(buffer)
 	end
 
-	// yeah.
-	local function V_LevelActNumWidth(knum)
-		local result = 0
-
-		if (knum == 0) then
-			result = ttlnum[knum].width
-		end
-
-		while (knum > 0 and knum <= 99) do
-			result = $ + ttlnum[knum % 10].width
-			knum = $ / 10
-		end
-
-		return result
-	end
-
 	//
 	// drawing section.
 	//
@@ -62,7 +71,7 @@ local function V_DrawLevelActNum(v, x, y, num)
 	while (num > 0) do
 		// if there are two digits, draw second digit first
 		if (num > 9)
-			v.draw(x + (V_LevelActNumWidth(num) - V_LevelActNumWidth(num % 10)), y, ttlnum[num % 10], 0)
+			v.draw(x + (V_LevelActNumWidth(v, num) - V_LevelActNumWidth(v, num % 10)), y, ttlnum[num % 10], 0)
 		
 		// otherwise, do the thing.
 		else

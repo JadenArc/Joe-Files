@@ -56,24 +56,28 @@ local TH_DrawTitle = function(v, player, ticker, endticker)
 	// Level Title and act number
 	//
 
-	V_AlignLevelTitle(v, 160, 10, level_title, "center")
+	local title_y = 40
+	local act_y = 132
+
+	V_AlignLevelTitle(v, 160, title_y, level_title, "center")
 	
 	if not (has_zone) then
-		V_AlignLevelTitle(v, 160, 32, "Zone", "center")
+		V_AlignLevelTitle(v, 160, title_y + 22, "Zone", "center")
 	end
 
 	if (act_number) then
-		local xoffs = (act_number > 9) and 10 or 0
+		local actpat = v.cachePatch("J_ACTPAT")
+		v.draw(151, act_y, actpat, 0, colormap)
 
-		v.drawString(160 - xoffs, 172, "Act", V_YELLOWMAP|V_ALLOWLOWERCASE, "right")
-		V_DrawLevelActNum(v, 166 - xoffs, 162, act_number)
+		local actnum_center = V_LevelActNumWidth(v, act_number) / 2
+		V_DrawLevelActNum(v, 160 - actnum_center, act_y, act_number)
 	end
 
 	//
 	// Subtitle
 	//
 
-	v.drawString(160, 60, sub_title, V_ALLOWLOWERCASE, "center")
+	v.drawString(160, title_y + 50, sub_title, V_ALLOWLOWERCASE, "center")
 end
 
 local T_TitleDrawer = function(v, player, ticker, endticker)

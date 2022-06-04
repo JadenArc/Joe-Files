@@ -72,7 +72,7 @@ local C_FinalMessageResult = function(player, type, target, message)
 		-- if we are on dedicated server, and the server sends a message...
 		if (player == server) and not player.realmo then
 			chatprint("\x82SERVER" .. "\x80: " .. message)
-			S_StartSound(nil, sfx_thok, nil)
+			S_StartSound(nil, sfx_s1a1, nil)
 			return true
 		end
 		
@@ -121,11 +121,7 @@ local C_FinalMessageResult = function(player, type, target, message)
 		S_StartSound(nil, chatsound_private, player)
 
 		chatprintf(target, target_msg)
-		S_StartSound(nil, chatsound_private, target)
-
-	-- ... CSay?
-	elseif (type == 3)
-	
+		S_StartSound(nil, chatsound_private, target)	
 	end
 	
 	return true

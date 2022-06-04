@@ -14,17 +14,17 @@ CV_RegisterVar({
 	flags = CV_NETVAR|CV_CALL|CV_NOINIT,
 	possiblevalue = CV_YesNo, 
 	func = function(var)
-		local emflags = EMERALD1|EMERALD2|EMERALD3|EMERALD4|EMERALD5|EMERALD6|EMERALD7
+		local emflags = 127 -- result of all emerald flags
 
 		if var.value == 1 then
 			emeralds = $ | (emflags)
 			S_StartSound(nil, sfx_cgot)
-			print("The emeralds were" .. "\x8B spawned!" .. "\x80 Now you can be super.")
+			print("The emeralds were \x8Bspawned! \x80Now you can be super.")
 
 		elseif var.value == 0 then
 			emeralds = $ & ~(emflags)
 			S_StartSound(nil, sfx_lose)
-			print("The emeralds suddenly" .. "\x85 vanished!" .. "\x80 Some wacky admin did it...")
+			print("The emeralds suddenly \x85vanished! \x80Some wacky admin did it...")
 		end
 	end
 })
@@ -471,7 +471,7 @@ COM_AddCommand("super", function(player, playerid)
 		S_StartSound(player.realmo, sfx_s3k66)
 	end
 	
-	if (playerid == "all") and ((server == player) or IsPlayerAdmin(player)) then
+	if (playerid == "all") and JoeBase.IsServerOrAdmin(player) then
 		for otherplayer in players.iterate do
 			if not otherplayer.powers[pw_super] then
 				otherplayer.charflags = $ | SF_SUPER

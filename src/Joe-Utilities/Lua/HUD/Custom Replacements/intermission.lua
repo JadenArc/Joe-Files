@@ -212,10 +212,8 @@ local I_Ticker = function()
 			end
 		end
 			
-		for player in players.iterate do
-			if (player.cmd.buttons & BT_SPIN) then
-				inter_skipped = true
-			end
+		if (consoleplayer.cmd.buttons & BT_SPIN) then
+			inter_skipped = true
 		end
 	end
 end

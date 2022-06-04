@@ -81,6 +81,11 @@ JoeBase.IsValid = function(mo)
 	return (mo and mo.valid)
 end
 
+-- another shortcut.
+JoeBase.IsServerOrAdmin = function(player)
+	return ((player == server) or server) or IsPlayerAdmin(player)
+end
+
 -- b.
 JoeBase.GetCountdownLogic = function(timer)	
 	local tics, timelimitintics, downwards

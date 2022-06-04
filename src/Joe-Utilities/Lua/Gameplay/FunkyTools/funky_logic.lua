@@ -83,13 +83,30 @@ local function P_ForceFlagsEffects()
 			ghost.spritexscale = scaled
 			ghost.spriteyscale = scaled
 
+			// followitems exist too!
+			if JoeBase.IsValid(ghost.tracer) then
+				ghost.tracer.fuse = ghost.fuse
+				ghost.tracer.frame = $ | (FF_ADD|FF_TRANS30)
+
+				ghost.tracer.spritexscale = ghost.spritexscale
+				ghost.tracer.spriteyscale = ghost.spriteyscale
+			end
+
 			P_TeleportMove(ghost, mo.x, mo.y, mo.z)
 		end
 
 		if (player.force_noclip) then
 			mo.frame = $ | FF_TRANS70
+
+			if JoeBase.IsValid(mo.tracer) then
+				mo.tracer.frame = $ | FF_TRANS70
+			end
 		else
 			mo.frame = $ &~ FF_TRANS70
+
+			if JoeBase.IsValid(mo.tracer) then
+				mo.tracer.frame = $ &~ FF_TRANS70
+			end
 		end
 	end
 end
@@ -104,19 +121,19 @@ local function P_FreezeThink(player)
 	if not JoeBase.IsValid(mo) then return end
 
 	if (player.is_frozen) then
-		mo.color = SKINCOLOR_ICY
-		mo.colorized = true
-
 		player.powers[pw_nocontrol] = max($, 2)
 
-		/*
-		
-		local ice_block = P_SpawnMobjFromMobj(player, 0, 0, 0, MT_ICEBLOCK)
-		...
-		*/
+		mo.color = SKINCOLOR_ICY
+
+		if not (player.force_colorize) then
+			mo.colorized = true
+		end
 	else
 		mo.color = player.skincolor
-		mo.colorized = false
+
+		if not (player.force_colorize) then
+			mo.colorized = false
+		end
 	end
 end
 addHook("PlayerThink", P_FreezeThink)

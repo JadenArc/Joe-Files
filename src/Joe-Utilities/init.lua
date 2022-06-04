@@ -18,7 +18,7 @@ dofolder("customrankings_match.lua")
 folder = "HUD/Custom Replacements"
 dofolder("funcs.lua")
 dofolder("intermission.lua")
-dofolder("titlecard.lua")
+--dofolder("titlecard.lua") //disabled until further inspiration.
 
 folder = "HUD"
 dofolder("customhud.lua")
