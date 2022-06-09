@@ -113,7 +113,7 @@ local M_DrawCoopRankings = function(v, scorelines)
 				if (player.exiting) then
 					v.drawString(x + rightoffset, y, "FIN", colormap|V_6WIDTHSPACE, aligntype_right)
 				else
-					v.drawString(x + rightoffset, y, string.format("Lap %d", player.laps+1), hilicol|V_ALLOWLOWERCASE|V_6WIDTHSPACE, aligntype_right)
+					v.drawString(x + rightoffset, y, string.format("Lap %d", player.laps+1), V_ALLOWLOWERCASE|V_6WIDTHSPACE, aligntype_right)
 				end
 			else
 				v.drawString(x + rightoffset, y, JoeRankings.DoTimer(player.realtime, true), colormap|V_6WIDTHSPACE, aligntype_right)
@@ -238,7 +238,7 @@ local M_DrawCompactCoopRankings = function(v, scorelines)
 				if (player.exiting) then
 					v.drawString(x + rightoffset, y - 2, "FIN", colormap|V_6WIDTHSPACE, "thin-right")
 				else
-					v.drawString(x + rightoffset, y - 2, string.format("Lap %d", player.laps+1), hilicol|V_ALLOWLOWERCASE|V_6WIDTHSPACE, "thin-right")
+					v.drawString(x + rightoffset, y - 2, string.format("Lap %d", player.laps+1), V_ALLOWLOWERCASE|V_6WIDTHSPACE, "thin-right")
 				end
 			else
 				v.drawString(x + rightoffset, y - 2, JoeRankings.DoTimer(player.realtime, true), colormap|V_6WIDTHSPACE, "thin-right")

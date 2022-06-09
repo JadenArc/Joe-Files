@@ -7,6 +7,8 @@
 
 local title_tics = 0
 
+addHook("MapChange", do title_tics = 0 end)
+
 local T_TitleThink = function()
 	if (paused) then return end
 	
@@ -18,7 +20,7 @@ local TH_DrawTitle = function(v, player, ticker, endticker)
 	local sub_title = mapheaderinfo[gamemap].subttl
 	local act_number = mapheaderinfo[gamemap].actnum
 
-	local has_zone = (mapheaderinfo[gamemap].levelflags & LF_NOZONE)
+	local has_zone = not (mapheaderinfo[gamemap].levelflags & LF_NOZONE)
 
 	//
 	// Run all the stuff correctly.
@@ -61,7 +63,7 @@ local TH_DrawTitle = function(v, player, ticker, endticker)
 
 	V_AlignLevelTitle(v, 160, title_y, level_title, "center")
 	
-	if not (has_zone) then
+	if (has_zone) then
 		V_AlignLevelTitle(v, 160, title_y + 22, "Zone", "center")
 	end
 

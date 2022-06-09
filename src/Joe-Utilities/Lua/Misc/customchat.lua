@@ -12,7 +12,86 @@ local chatsound_fail = sfx_s258
 local chatsound_event = sfx_s25a
 local chatsound_teams = sfx_ding
 local chatsound_private = sfx_s3k92
+local chatsound_unmuted = sfx_ideya
 
+local CL_MuteThink = do
+	for player in players.iterate do
+		-- could leave this as a int, but i dont want sum temp-mutes.......
+		player.muted = $ or false
+
+		-- reasons, people can forget about it
+		player.muted_reason = $ or ""
+	end
+end
+addHook("PreThinkFrame", CL_MuteThink)
+
+local CMD_MutePlayer = function(player, target, reason)
+	if (target == nil) then
+		CONS_Printf(player, "\x82muteplayer <target> [reason]\x80: Mutes a player, self-explanatory.")
+		return
+	end
+
+	target = tonumber($)
+	reason = $ or "No Reason."
+
+	local target_player = players[target]
+
+	if not (target_player) then
+		CONS_Printf(player, "That player doesn't exist!")
+		return
+	end
+
+	if JoeBase.IsServerOrAdmin(target_player) then
+		CONS_Printf(player, "You can't mute admins or hosts! They are so powerful for this command...")
+		return
+	end
+
+	if (target_player.muted) then
+		CONS_Printf(player, "That player is already muted! Don't troll him like this...")
+		return
+	end
+
+	target_player.muted = true
+	target_player.muted_reason = reason
+
+	local message = string.format("%s\x80 muted %s\x80. \x82(\x80%s\x82)", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false), target_player.muted_reason)
+
+	chatprint(message)
+	S_StartSound(nil, chatsound_event)
+end
+COM_AddCommand("muteplayer", CMD_MutePlayer, COM_ADMIN)
+
+-- the same thing, but backwards
+local CMD_UnmutePlayer = function(player, target)
+	if (target == nil) then
+		CONS_Printf(player, "\x82unmuteplayer <target> \x80: Unmutes a player, it's also self-explanatory too.")
+		return
+	end
+
+	target = tonumber($)
+
+	local target_player = players[target]
+
+	if not (target_player) then
+		CONS_Printf(player, "That player doesn't exist!")
+		return
+	end
+
+	if not (target_player.muted) then
+		CONS_Printf(player, "That player is not muted! Don't be silly!")
+		return
+	end
+
+	target_player.muted = false
+
+	local message = string.format("%s\x80 unmuted %s\x80!", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false))
+
+	chatprint(message)
+	S_StartSound(nil, chatsound_unmuted)
+end
+COM_AddCommand("unmuteplayer", CMD_UnmutePlayer, COM_ADMIN)
+
+// re-write the team change logic, and print info of it on chat!
 local CL_TeamChange = function(player, teams, is_spec, autobalance, scramble)
 	-- when you have to redo every logic
 	if G_GametypeHasTeams() then
@@ -65,6 +144,13 @@ addHook("TeamSwitch", CL_TeamChange)
 local C_FinalMessageResult = function(player, type, target, message)
 	local player_name;
 
+	-- Yeah
+	if (player.muted) then
+		chatprintf(player, "\x82* You are muted! (Reason: \x80" .. player.muted_reason .. "\x82)")
+		S_StartSound(nil, chatsound_fail, player)
+		return true
+	end
+
 	-- The unique message.
 	if (type == 0) then
 		player_name = JoeBase.GetPlayerName(player, true, true)
@@ -114,6 +200,13 @@ local C_FinalMessageResult = function(player, type, target, message)
 			S_StartSound(nil, chatsound_fail, player)
 			return true
 		end
+
+		-- You cant talk to muted players!
+		if (target.muted) then
+			chatprintf(player, "\x82* That player is muted, sorry!")
+			S_StartSound(nil, chatsound_fail, player)
+			return true
+		end
 		
 		local player_msg = "\x82" .. "To " .. target_name .. "\x80: " .. message
 		local target_msg = "\x82" .. "From " .. player_name .. "\x80: " .. message
@@ -121,7 +214,7 @@ local C_FinalMessageResult = function(player, type, target, message)
 		S_StartSound(nil, chatsound_private, player)
 
 		chatprintf(target, target_msg)
-		S_StartSound(nil, chatsound_private, target)	
+		S_StartSound(nil, chatsound_private, target)
 	end
 	
 	return true

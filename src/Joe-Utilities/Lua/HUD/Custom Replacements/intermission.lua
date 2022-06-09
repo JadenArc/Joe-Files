@@ -155,7 +155,7 @@ local I_Ticker = function()
 
 	// only draw this on friendly gametypes, i dont want to redo the results screen in most gametypes
 	if not (gametyperules & GTR_FRIENDLY) or (gametyperules & GTR_RACE) then return end
-
+	
 	local map_bonustype = mapheaderinfo[gamemap].bonustype
 	local inter_delay = I_IsSpecialStage(gamemap) and (TICRATE*2) or (TICRATE) 
 

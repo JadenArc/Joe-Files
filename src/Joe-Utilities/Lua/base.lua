@@ -83,7 +83,7 @@ end
 
 -- another shortcut.
 JoeBase.IsServerOrAdmin = function(player)
-	return ((player == server) or server) or IsPlayerAdmin(player)
+	return (player == server) or IsPlayerAdmin(player)
 end
 
 -- b.
