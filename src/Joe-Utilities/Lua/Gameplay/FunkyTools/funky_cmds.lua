@@ -1,7 +1,14 @@
 -- admintools.lua and funtools.lua being merged with a rewrite or recreation
 
--- something.
-local onlylevel = "You must be in a level to use this."
+-- This is basically on every command.
+local G_IsNotOnLevel = function(player)
+	if (gamestate ~= GS_LEVEL) then
+		CONS_Printf(player, "This can only be used on a level.")
+		return true
+	end
+
+	return false
+end
 
 //
 -- Let's start with the admin-only commands.
@@ -31,6 +38,8 @@ CV_RegisterVar({
 
 -- Kill command, admins can kill players if they want to.
 local function CMD_KillCommand(player, target)
+	if G_IsNotOnLevel(player) then return end
+
     if target == nil then
         CONS_Printf(player, "\x82kill <node>\x80: Kills the node. (Use 'nodes' on the console to see which nodes are which.)")
         return
@@ -119,6 +128,8 @@ COM_AddCommand('dofor', CMD_DoforCommand, COM_ADMIN)
 
 -- goto, go to a player's coordinates.
 local function CMD_GotoCommand(player, target)
+	if G_IsNotOnLevel(player) then return end
+
     if target == nil then
         CONS_Printf(player, "\x82goto <node>\x80: Goes to the given player's coordinates")
         return
@@ -146,6 +157,8 @@ COM_AddCommand('goto', CMD_GotoCommand, 1)
 
 -- rally, teleport every player to your location.
 local function CMD_RallyCommand(player)
+	if G_IsNotOnLevel(player) then return end
+
 	if not player.mo then
 		CONS_Printf(player, "You don't exist, so players can't teleport to you now.")
 		return
@@ -184,6 +197,8 @@ COM_AddCommand('changemus', CMD_ChangeMusicCommand, 1)
 
 -- scaleto, troll someone by changing its size
 local function CMD_ScaleToCommand(p, target, scale)
+	if G_IsNotOnLevel(player) then return end
+
 	local nScale = J_DoFloatNumber(scale)
 
     if target == nil then
@@ -219,6 +234,8 @@ COM_AddCommand("scaleto", CMD_ScaleToCommand, 1)
 
 -- spawnobject, self-explanatory.
 local function CMD_SpawnobjectCommand(player, object)
+	if G_IsNotOnLevel(player) then return end
+
     if object == nil then
         CONS_Printf(player, "\x82spawnobject <object>\x80: Spawns object via MT_* \n" ..
 							"Go to https://wiki.srb2.org/wiki/List_of_Object_types to get a list of Object Types."
@@ -247,6 +264,8 @@ COM_AddCommand('spawnobject', CMD_SpawnobjectCommand, 1)
 
 -- killallenemies, you know the rules.
 local function CMD_KillEnemiesCommand(player)
+	if G_IsNotOnLevel(player) then return end
+
     for object in mobjs.iterate("mobj") do
         if (object.flags & MF_ENEMY) or (object.flags & MF_BOSS) then
             P_KillMobj(object, nil, player.mo)
@@ -281,6 +300,8 @@ end
 COM_AddCommand('print', CMD_DoPrint, 1)
 
 local function CMD_FreezeCommand(player, target)
+	if G_IsNotOnLevel(player) then return end
+
 	if (target == nil) then
         CONS_Printf(player, "\x82" .. "freeze <node/all>\x80: Freezes the player, wow!")
         return
@@ -343,10 +364,7 @@ COM_AddCommand("freeze", CMD_FreezeCommand, COM_ADMIN)
 
 -- GodMode, self-explanatory.
 local function CMD_GodToggle(player)
-	if not (gamestate == GS_LEVEL) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
+	if G_IsNotOnLevel(player) then return end
 
 	if (player.force_godmode == false) then
 		player.force_godmode = true
@@ -361,10 +379,7 @@ COM_AddCommand("god", CMD_GodToggle, 1)
 
 -- Noclip, self-explanatory too.
 local function CMD_NoclipToggle(player)
-	if not (gamestate == GS_LEVEL) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
+	if G_IsNotOnLevel(player) then return end
 
 	if (player.force_noclip == false) then
 		player.force_noclip = true
@@ -398,10 +413,7 @@ local shieldtypes = {
 }
 
 COM_AddCommand('shield', function(player, arg1)
-	if not (gamestate == GS_LEVEL) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
+	if G_IsNotOnLevel(player) then return end
 	
 	if not arg1 then
 		CONS_Printf(player, "\x82shield <number>\x80: Change your shield! Valid values are from 1 to 11.")
@@ -428,10 +440,7 @@ end)
 
 -- super, self-explanatory. Can be used on you, or the other players.
 COM_AddCommand("super", function(player, playerid)
-	if not (gamestate == GS_LEVEL) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
+	if G_IsNotOnLevel(player) then return end
 
 	if (player.solchar) then
 		CONS_Printf(player, "This command doesn't work for \x82" .. "solchars characters... \x80" .. "Sorry!")
@@ -500,10 +509,7 @@ end)
 
 -- suicide, a replacement that kills you with some extras.
 COM_AddCommand('suicide', function(player)
-	if not (gamestate == GS_LEVEL or gamestate == GS_INTERMISSION) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
+	if G_IsNotOnLevel(player) then return end
 
 	if player.mo then
 		if (player.mo.eflags & MFE_UNDERWATER) then
@@ -516,10 +522,7 @@ end)
 
 -- Colorize, yeah, that too.
 COM_AddCommand("colorize", function(player)
-	if not (gamestate == GS_LEVEL) then
-		CONS_Printf(player, onlylevel)
-		return
-	end
+	if G_IsNotOnLevel(player) then return end
 
 	if (player.force_colorize == false) then
 		player.force_colorize = true
@@ -533,6 +536,8 @@ end)
 
 -- rings, how many times im going to say "self-explanatory"?
 COM_AddCommand("rings", function(player, arg1)
+	if G_IsNotOnLevel(player) then return end
+
     if arg1 == nil then
         CONS_Printf(player, '\x82rings <value>\x80: Set your rings!')
         return
@@ -548,6 +553,8 @@ end)
 
 -- lives, ...
 COM_AddCommand("lives", function(player, arg1)
+	if G_IsNotOnLevel(player) then return end
+
     if arg1 == nil then
         CONS_Printf(player, '\x82lives <value>\x80: Set your lives!')
         return
@@ -563,6 +570,8 @@ end)
 
 -- scale, for all players
 COM_AddCommand("scale", function(player, scale)
+	if G_IsNotOnLevel(player) then return end
+
 	local nScale = J_DoFloatNumber(scale)
 	
 	if scale == nil then
@@ -577,6 +586,8 @@ end)
 
 -- shoes, no longer admin only.
 COM_AddCommand("shoes", function(player, time)
+	if G_IsNotOnLevel(player) then return end
+
 	if not time then
 		CONS_Printf(player, "\x82shoes <time>\x80: Give yourself Super Sneakers")
 		return
@@ -591,6 +602,8 @@ end)
 
 -- invuln, oh my god i hate saying "self-explanatory" too many times
 COM_AddCommand("invuln", function(player, time)
+	if G_IsNotOnLevel(player) then return end
+	
 	if not time then
 		CONS_Printf(player, "\x82invuln <time>\x80: give yourself invulnerability")
 		return
