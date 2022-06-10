@@ -80,10 +80,6 @@ end
 
 -- recreation of G_IsSpecialStage so i can be happy without "This can only be used on a level!" error.
 local function I_IsSpecialStage(map)
-	if (mapheaderinfo[map].typeoflevel & TOL_NIGHTS) then
-		return true
-	end
-
 	if (map >= sstage_start and map <= sstage_end) then
 		return true
 	end
@@ -92,24 +88,16 @@ local function I_IsSpecialStage(map)
 		return true
 	end
 
+	if (mapheaderinfo[map].typeoflevel & TOL_NIGHTS) then
+		return true
+	end
+
 	return false
 end
 
 -- shortcut.
-local function I_DoBonus(r, i, s)
-	return table.insert(inter_bonus, {reward = r, info = i, string = s})
-end
-
--- draw a solid blue textbox.
-local function V_DrawBox(v, x, y, width, boxlines)
-	local col = 159
-
-	if (mapheaderinfo[gamemap].levelflags & LF_WARNINGTITLE) then
-		col = 45
-	end
-
-	v.drawFill(x + 6, y + 6, (width*8) + 7, (boxlines*8) + 7, 31)
-	v.drawFill(x + 5, y + 5, (width*8) + 6, (boxlines*8) + 6, col)
+local function I_DoBonus(r, i, p)
+	return table.insert(inter_bonus, {reward = r, info = i, patch = p})
 end
 
 -- translated from f_finale.c (see F_GameEvaluationDrawer)
@@ -175,27 +163,27 @@ local I_Ticker = function()
 			
 		-- Time bonus
 		elseif (map_bonustype == 0) then
-			I_DoBonus(0, I_GetTimeBonus(consoleplayer.realtime),    "Total Time:")
-			I_DoBonus(0, 							 ring_count,    "Ring Bonus:")
-			I_DoBonus(1, 									nil, "Perfect Bonus:")
+			I_DoBonus(0, I_GetTimeBonus(consoleplayer.realtime),  "YB_TIME")
+			I_DoBonus(0, 							 ring_count,  "YB_RING")
+			I_DoBonus(1, 									nil, "YB_PERFE")
 
-			I_DoBonus(2, 									  0, 		 "Total:")
+			I_DoBonus(2, 									  0, "YB_TOTAL")
 
 		-- Guard bonus, but you got hit.
 		elseif (map_bonustype == 1) then
-			I_DoBonus(0, I_GetGuardBonus(consoleplayer.timeshit), "Guard Bonus:")
-			I_DoBonus(0, 							  ring_count,  "Ring Bonus:")
-			I_DoBonus(1, 									 nil,            nil)
+			I_DoBonus(0, I_GetGuardBonus(consoleplayer.timeshit), "YB_GUARD")
+			I_DoBonus(0, 							  ring_count,  "YB_RING")
+			I_DoBonus(1, 									 nil,		 nil)
 			
-			I_DoBonus(2, 									   0, 		"Total:")
+			I_DoBonus(2, 									   0, "YB_TOTAL")
 
 		-- Guard bonus, but we are on ERZ3. (why???)
 		elseif (map_bonustype == 2) then
-			I_DoBonus(0, I_GetGuardBonus(consoleplayer.timeshit), 	"Guard Bonus:")
-			I_DoBonus(0, 							  ring_count,  	 "Ring Bonus:")
-			I_DoBonus(1,									 nil, "Perfect Bonus:")
+			I_DoBonus(0, I_GetGuardBonus(consoleplayer.timeshit), 	"YB_GUARD")
+			I_DoBonus(0, 							  ring_count,  	 "YB_RING")
+			I_DoBonus(1,									 nil,	"YB_PERFE")
 			
-			I_DoBonus(2, 									   0, 		  "Total:")
+			I_DoBonus(2, 									   0, 	"YB_TOTAL")
 		end
 
 	-- Do the rest now
@@ -245,18 +233,12 @@ local IH_DrawMessages = function(v)
 
 			local str = string.format("Speeding off in %d second%s.", timeleft, (timeleft == 1) and "" or "s")
 
-			v.drawString(160, y, str, flags|V_SNAPTOLEFT, "thin-center")
+			v.drawString(160, y, str, flags, "thin-center")
 		end
 	
 	// we are on Singleplayer!
 	else
-		v.drawString(3, y - 8, "Good job!", flags|V_SNAPTOLEFT, "thin")
-		v.drawString(3, y, "Speeding off to the next level...", flags|V_SNAPTOLEFT, "thin")
-	end
-
-	if not (netgame) then
-		v.drawString(317, y - 8, "Join our discord server!", flags|V_SNAPTORIGHT, "thin-right")
-		v.drawString(317, y, cv_discordlink.string, V_ALLOWLOWERCASE|V_SNAPTORIGHT|V_SNAPTOBOTTOM, "thin-right")
+		v.drawString(160, y, "Speeding off to the next level...", flags, "thin-center")
 	end
 end
 
@@ -351,31 +333,26 @@ local IH_DrawIntermission = function(v, stagefailed)
 	// Total, Rings, Perfect, etc...
 	//
 
+	local flags = (stagefailed) and V_TRANSLUCENT or 0
+
 	-- only draw total on special stages, so we can see the emeralds
 	if I_IsSpecialStage(gamemap) then
-		local flags = (stagefailed) and V_TRANSLUCENT or 0
-
-		V_DrawBox(v, 62, 166, 22, 1)
-
-		v.drawString(74, 175, "Total:", flags|V_ALLOWLOWERCASE|V_YELLOWMAP, "thin")
-		v.drawString(244, 175, inter_totalscore, flags|V_ALLOWLOWERCASE, "thin-right")
+		v.draw(152, 170, v.cachePatch("YB_TOTAL"), flags)
+		v.drawNum(224, 171, inter_totalscore, flags)
 
 		return
 	end
-
-	V_DrawBox(v, 48, 113, 26, 6)
 
 	for i, inter in ipairs(inter_bonus) do
 		if (inter.reward == 1) and not (inter.info ~= nil) then continue end
 		
 		local bonus_type = (inter.reward == 2) and inter_totalscore or inter.info
 		
-		local y = 126 + (10 * (i - 1))
-		local flags = (stagefailed) and V_TRANSLUCENT or 0
+		local y = 106 + (16 * (i - 1))
+		local xoffs = (inter.reward == 2) and 24 or 0
 
-		v.drawString(68, y, inter.string, flags|V_ALLOWLOWERCASE|V_YELLOWMAP)
-
-		v.drawString(252, y, bonus_type, flags, "right")
+		v.draw(152, y, v.cachePatch(inter.patch), flags)
+		v.drawNum(252 - xoffs, y + 1, bonus_type, flags)
 	end
 end
 
