@@ -32,7 +32,7 @@ CV_RegisterVar({
 -- Kill command, admins can kill players if they want to.
 local function CMD_KillCommand(player, target)
     if target == nil then
-        CONS_Printf(player, "kill <node>: Kills the node. (Use 'nodes' on the console to see which nodes are which.)")
+        CONS_Printf(player, "\x82kill <node>\x80: Kills the node. (Use 'nodes' on the console to see which nodes are which.)")
         return
     end
 
@@ -86,7 +86,7 @@ COM_AddCommand("kill", CMD_KillCommand, COM_ADMIN)
 -- dofor, executes commands on other player's console. Not intended for bad use.
 local function CMD_DoforCommand(player, arg1, arg2)
     if (arg1 == nil) then
-        CONS_Printf(player, 'dofor <node/all/server> <command>: Inserts a command on the selected node.')
+        CONS_Printf(player, '\x82' .. 'dofor <node/all/server> <command>\x80: Inserts a command on the selected node.')
         return
     end
 	
@@ -120,7 +120,7 @@ COM_AddCommand('dofor', CMD_DoforCommand, COM_ADMIN)
 -- goto, go to a player's coordinates.
 local function CMD_GotoCommand(player, target)
     if target == nil then
-        CONS_Printf(player, "goto <node>: Goes to the given player's coordinates")
+        CONS_Printf(player, "\x82goto <node>\x80: Goes to the given player's coordinates")
         return
     end
 
@@ -168,7 +168,7 @@ COM_AddCommand("rally", CMD_RallyCommand, COM_ADMIN)
 -- changemus, exactly what is says on the tin.
 local function CMD_ChangeMusicCommand(player, music)
     if music == nil then
-        CONS_Printf(player, 'changemus <musicid>: Changes music for everyone.')
+        CONS_Printf(player, '\x82' .. 'changemus <musicid>\x80: Changes music for everyone.')
         return
     end
 
@@ -187,7 +187,7 @@ local function CMD_ScaleToCommand(p, target, scale)
 	local nScale = J_DoFloatNumber(scale)
 
     if target == nil then
-        CONS_Printf(p, "scale <target> <value>: Make someone bigger or smaller")
+        CONS_Printf(p, "\x82scale <target> <value>\x80: Make someone bigger or smaller!")
         return
     end
 
@@ -220,7 +220,7 @@ COM_AddCommand("scaleto", CMD_ScaleToCommand, 1)
 -- spawnobject, self-explanatory.
 local function CMD_SpawnobjectCommand(player, object)
     if object == nil then
-        CONS_Printf(player, "spawnobject" .. "\x82 <object>" .. "\x80" .. ": Spawns object via MT_* \n" ..
+        CONS_Printf(player, "\x82spawnobject <object>\x80: Spawns object via MT_* \n" ..
 							"Go to https://wiki.srb2.org/wiki/List_of_Object_types to get a list of Object Types."
 		)
         return
@@ -258,7 +258,7 @@ COM_AddCommand('killallenemies', CMD_KillEnemiesCommand, 1)
 -- print, and so do i.
 local function CMD_DoPrint(player, typeof, message)
 	if not typeof then
-		CONS_Printf(player, "print <type> <message>: print something to the console")
+		CONS_Printf(player, "\x82print <type> <message>\x80: print something to the console")
 		CONS_Printf(player, "types: Standard, Notice, Warning, Error")
 		return
 	end
@@ -282,7 +282,7 @@ COM_AddCommand('print', CMD_DoPrint, 1)
 
 local function CMD_FreezeCommand(player, target)
 	if (target == nil) then
-        CONS_Printf(player, "freeze <node/all>: Freezes the player, wow!")
+        CONS_Printf(player, "\x82" .. "freeze <node/all>\x80: Freezes the player, wow!")
         return
     end
 
@@ -404,21 +404,7 @@ COM_AddCommand('shield', function(player, arg1)
 	end
 	
 	if not arg1 then
-		CONS_Printf(player, 
-		"shield <shield>: Change your shield!",
-		"Valid values:",
-		"1: " .. shieldtypes[1].name .. " shield",
-		"2: " .. shieldtypes[2].name .. " shield",
-		"3: " .. shieldtypes[3].name .. " shield",
-		"4: " .. shieldtypes[4].name .. " shield",
-		"5: " .. shieldtypes[5].name .. " shield",
-		"6: " .. shieldtypes[6].name .. " shield",
-		"7: " .. shieldtypes[7].name .. " shield",
-		"8: " .. shieldtypes[8].name .. " shield",
-		"9: " .. shieldtypes[9].name .. " shield",
-		"10: " .. shieldtypes[10].name .. " shield",
-		"11: " .. shieldtypes[11].name .. " shield"
-		)
+		CONS_Printf(player, "\x82shield <number>\x80: Change your shield! Valid values are from 1 to 11.")
 		return
 	end
 
@@ -440,7 +426,7 @@ COM_AddCommand('shield', function(player, arg1)
 	S_StartSound(player.mo, shielddata.sound)
 end)
 
--- super, self-explanatory. Can be made on you or other players.
+-- super, self-explanatory. Can be used on you, or the other players.
 COM_AddCommand("super", function(player, playerid)
 	if not (gamestate == GS_LEVEL) then
 		CONS_Printf(player, onlylevel)
@@ -548,7 +534,7 @@ end)
 -- rings, how many times im going to say "self-explanatory"?
 COM_AddCommand("rings", function(player, arg1)
     if arg1 == nil then
-        CONS_Printf(player, 'rings <value>: Set your rings!')
+        CONS_Printf(player, '\x82rings <value>\x80: Set your rings!')
         return
     end
 
@@ -563,7 +549,7 @@ end)
 -- lives, ...
 COM_AddCommand("lives", function(player, arg1)
     if arg1 == nil then
-        CONS_Printf(player, 'lives <value>: Set your lives!')
+        CONS_Printf(player, '\x82lives <value>\x80: Set your lives!')
         return
     end
 
@@ -580,7 +566,7 @@ COM_AddCommand("scale", function(player, scale)
 	local nScale = J_DoFloatNumber(scale)
 	
 	if scale == nil then
-		CONS_Printf(player, "scale <value>: Change your scale by setting a number!")
+		CONS_Printf(player, "\x82scale <value>\x80: Change your scale by setting a number!")
 		return
 	end
 	
@@ -592,7 +578,7 @@ end)
 -- shoes, no longer admin only.
 COM_AddCommand("shoes", function(player, time)
 	if not time then
-		CONS_Printf(player, "shoes <time>: Give yourself Super Sneakers")
+		CONS_Printf(player, "\x82shoes <time>\x80: Give yourself Super Sneakers")
 		return
 	end
 
@@ -606,7 +592,7 @@ end)
 -- invuln, oh my god i hate saying "self-explanatory" too many times
 COM_AddCommand("invuln", function(player, time)
 	if not time then
-		CONS_Printf(player, "invuln <time>: give yourself invulnerability")
+		CONS_Printf(player, "\x82invuln <time>\x80: give yourself invulnerability")
 		return
 	end
 

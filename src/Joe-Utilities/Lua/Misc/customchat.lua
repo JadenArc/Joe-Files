@@ -64,7 +64,7 @@ COM_AddCommand("muteplayer", CMD_MutePlayer, COM_ADMIN)
 -- the same thing, but backwards
 local CMD_UnmutePlayer = function(player, target)
 	if (target == nil) then
-		CONS_Printf(player, "\x82unmuteplayer <target> \x80: Unmutes a player, it's also self-explanatory too.")
+		CONS_Printf(player, "\x82unmuteplayer <target>\x80: Unmutes a player, it's also self-explanatory too.")
 		return
 	end
 
@@ -144,7 +144,7 @@ addHook("TeamSwitch", CL_TeamChange)
 local C_FinalMessageResult = function(player, type, target, message)
 	local player_name;
 
-	-- Yeah
+	-- Yeah, don't even try.
 	if (player.muted) then
 		chatprintf(player, "\x82* You are muted! (Reason: \x80" .. player.muted_reason .. "\x82)")
 		S_StartSound(nil, chatsound_fail, player)
