@@ -30,8 +30,9 @@ JoeBase.GetPlayerName = function(player, perms, stats) -- 2 booleans? wow!!!!!!!
 	// Prefixes.
 	//
 
-	local player_color = skincolors[player.skincolor].chatcolor
-	local player_color_op = skincolors[ColorOpposite(player.skincolor)].chatcolor
+	-- fail saves.
+	local player_color = (player.skincolor > 0) and skincolors[player.skincolor].chatcolor or 0
+	local player_color_op = (player.skincolor > 0) and skincolors[ColorOpposite(player.skincolor)].chatcolor or 0
 
 	local permissions = ""
 	local status = ""

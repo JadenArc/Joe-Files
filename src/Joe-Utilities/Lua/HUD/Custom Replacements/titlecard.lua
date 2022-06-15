@@ -1,8 +1,8 @@
 //
-// Custom Titlecard
-// By Jaden
-//
-// This was total pain
+-- Custom Titlecard
+-- By Jaden
+--
+-- This was total pain
 //
 
 local title_tics = 0
@@ -32,11 +32,13 @@ local TH_DrawTitle = function(v, player, ticker, endticker)
 	// Sum zigzags (copypaste of intermission.lua)
 	//
 
-	local zigzag, zztext, zztext_flip, colormap = V_GetZigPatch(v, player)
+	local zigzag = v.cachePatch("J_ZIGZAG")
+	local zztext = v.cachePatch("J_ZZTEXT")
+
+	local colormap = v.getColormap(TC_DEFAULT, (player.skincolor) or R_GetColorByName(CV_FindVar("color").value))
 
 	local zz_offs = title_tics % zigzag.height
 	local zt_offs = title_tics % zztext.height
-	local zf_offs = title_tics % zztext_flip.height
 
 	-- Zigzags --
 	
@@ -51,8 +53,8 @@ local TH_DrawTitle = function(v, player, ticker, endticker)
 	v.draw(0, 				   (zt_offs), zztext, V_SNAPTOLEFT|V_SNAPTOTOP, colormap)
 	v.draw(0, (-zztext.height + zt_offs), zztext, V_SNAPTOLEFT|V_SNAPTOTOP, colormap)
 
-	v.draw(304, 			  		-(zf_offs), zztext_flip, V_SNAPTORIGHT|V_SNAPTOTOP, colormap)
-	v.draw(304, (zztext_flip.height - zf_offs), zztext_flip, V_SNAPTORIGHT|V_SNAPTOTOP, colormap)
+	v.draw(320, 			   -(zt_offs), zztext, V_SNAPTORIGHT|V_SNAPTOTOP|V_FLIP, colormap)
+	v.draw(320, (zztext.height - zt_offs), zztext, V_SNAPTORIGHT|V_SNAPTOTOP|V_FLIP, colormap)
 
 	//
 	// Level Title and act number

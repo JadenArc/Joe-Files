@@ -3,8 +3,8 @@
 freeslot("sfx_tpmess")
 sfxinfo[sfx_tpmess].caption = "Tip"
 
-rawset(_G, "tiptimer", 0)
-rawset(_G, "UselessTips", { 
+local tiptimer = 0
+local UselessTips = { 
 	"Are you tired of this stage, and the admins arent around to change it? Type \130rtv \128in the chat to call a vote to skip the current stage!",
 	"Type \130super \128in your console to become super!",
 	"Do you want another supercolor? Type \130supercolor <supercolor> \128in your console to set one. To see the list, type \130supercolor list.",
@@ -12,15 +12,13 @@ rawset(_G, "UselessTips", {
 	"You can get rings by using the \130rings \128command. The amounts are from 0 to 9999.",
 	"Type \130scale \128on your console to be bigger than others! There's no limit.",
 	"Do you need to do something on the real life? Type \130afk \128on your console to be afk. You will also be invulnerable to everything and be stopped on whatever place you are.",
-	--"Type \131joe_menu \128to open a menu and change some options to have some better gameplay. Admins have more privileges on the menu.",
-	--"Do you want to see your inputs, or nametags? Type \130joe_menu, and go to the player section \128and see what can you change!",
 	"Do you want to join the discord server? Type \130discordlink \128on your console to see the link, and join it!",
 
 	-- jokes
 	"\133Joe \128is always here, he is watching you and your every move. All hail \133Joe\128. \133ALL HAIL JOE!",
 	"It was \132Richter Belmont\128, the legendary vampire hunter, who succeeded in finally ending the menace of \133Count Dracula\128, Lord of the Vampires who had been brought back from the grave by the dark priest \141Shaft\128.",
 	"Stop posting about \133Among Us\128! I'm tired of seeing it!"
-})
+}
 
 -- and the thinker!
 addHook("ThinkFrame", function()

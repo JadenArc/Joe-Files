@@ -8,38 +8,29 @@ end
 //
 
 -- Colors
-folder = "Utility/Colors"
+folder = "Colors"
 dofolder('MegaPaintColor.lua')
 dofolder('SuperColorCMD.lua')
 dofolder('SuperFreeslots.lua')
 
 -- Resources
-folder = "Utility/Resources"
+folder = "Resources"
 dofolder('corkbuff.lua')
 dofolder('joinandleavesounds.lua')
 dofolder('spectators.lua')
 	
 -- ExitTimer
-folder = "Utility/ExitTimer"
+folder = "ExitTimer"
 dofolder('ExitTimerLogic.lua')
 dofolder('ExitTimerHUD.lua')
 	
 -- General
-folder = "Utility"
-dofolder('afk.lua')
-dofolder('banskins.lua')
-dofolder('RTV.lua')
-dofolder('tipmessages.lua')
-dofolder('momentum.lua')
-dofolder('nametags.lua')
-
-//
-// Some cool thing
-//
-
-folder = 'Custom Menu'
-dofolder("menu_defs.lua")
-dofolder("menu_func.lua")
+dofile('afk.lua')
+dofile('banskins.lua')
+dofile('RTV.lua')
+dofile('tipmessages.lua')
+dofile('momentum.lua')
+dofile('nametags.lua')
 
 //
 //
@@ -48,7 +39,7 @@ dofolder("menu_func.lua")
 //
 
 rawset(_G, "DidFinish", function(player)
-	return ((player.pflags & PF_FINISHED) or ((player.exiting > 0) and not player.afk)) and not player.outofcoop and not (player.quittime > 0)
+	return ((player.pflags & PF_FINISHED) and not player.afk) and not (player.quittime > 0)
 end)
 
 rawset(_G, "M_DrawBox", function(v, x, y, width, boxlines, flags)

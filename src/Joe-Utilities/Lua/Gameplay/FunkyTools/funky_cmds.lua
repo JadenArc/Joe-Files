@@ -10,6 +10,20 @@ local G_IsNotOnLevel = function(player)
 	return false
 end
 
+-- yeah
+local P_ResetSuper = function(player)
+	player.powers[pw_super] = 0 -- do not remove the super flag, you wont be super if you press spin after all
+	player.powers[pw_flashing] = TICRATE
+	
+	P_SpawnShieldOrb(player) -- if you had a shield, restore it!
+	
+	P_FlashPal(player, PAL_WHITE, 3)
+	player.realmo.color = player.skincolor
+		
+	P_RestoreMusic(player)
+	S_StartSound(player.realmo, sfx_s3k66)
+end
+
 //
 -- Let's start with the admin-only commands.
 // 
@@ -398,21 +412,21 @@ COM_AddCommand("noclip", CMD_NoclipToggle, 1)
 //
 
 -- shield, reworked since the old one sucked.
-local shieldtypes = {
-	{name = "\x80" .. "No",			   value = SH_NONE, 	   sound = sfx_addfil}, -- trolling
-	{name = "\x8B" .. "Pity", 		   value = SH_PITY, 	   sound = sfx_shield},
-	{name = 		  "Whirlwind", 	   value = SH_WHIRLWIND,   sound = sfx_wirlsg},
-	{name = "\x85" .. "Armageddon",    value = SH_ARMAGEDDON,  sound = sfx_armasg},
-	{name = "\x8E" .. "Pink", 		   value = SH_PINK, 	   sound = sfx_shield},
-	{name = "\x87" .. "Elemental", 	   value = SH_ELEMENTAL,   sound = sfx_elemsg},
-	{name = "\x83" .. "Attraction",    value = SH_ATTRACT,	   sound = sfx_attrsg},
-	{name = "\x89" .. "Force", 		   value = SH_FORCE|1,	   sound = sfx_forcsg},
-	{name = "\x87" .. "S3K Flame", 	   value = SH_FLAMEAURA,   sound = sfx_s3k3e},
-	{name = "\x88" .. "S3K Bubble",    value = SH_BUBBLEWRAP,  sound = sfx_s3k3f},
-	{name = "\x82" .. "S3K Lightning", value = SH_THUNDERCOIN, sound = sfx_s3k41}
+local shieldList = {
+	[0] = {value = SH_NONE, 	    sound = nil}, 		 -- None
+	[1] = {value = SH_PITY, 	    sound = sfx_shield}, -- Pity
+	[2] = {value = SH_WHIRLWIND,    sound = sfx_wirlsg}, -- Whirlwind
+	[3] = {value = SH_ARMAGEDDON,   sound = sfx_armasg}, -- Armageddon
+	[4] = {value = SH_PINK, 	    sound = sfx_shield}, -- Pink Pity
+	[5] = {value = SH_ELEMENTAL,    sound = sfx_elemsg}, -- Elemental
+	[6] = {value = SH_ATTRACT,		sound = sfx_attrsg}, -- Attract
+	[7] = {value = SH_FORCE|1,		sound = sfx_forcsg}, -- Force
+	[8] = {value = SH_FLAMEAURA,    sound = sfx_s3k3e},  -- Flame
+	[9] = {value = SH_BUBBLEWRAP,   sound = sfx_s3k3f},  -- Bubble
+	[10] = {value = SH_THUNDERCOIN, sound = sfx_s3k41}   -- Thunder
 }
 
-COM_AddCommand('shield', function(player, arg1)
+local function CMD_ShieldCommand(player, arg1)
 	if G_IsNotOnLevel(player) then return end
 	
 	if not arg1 then
@@ -427,25 +441,21 @@ COM_AddCommand('shield', function(player, arg1)
 	
 	local shieldselected = tonumber(arg1)
 	
-	if (shieldselected < 1) or (shieldselected > 11) then
-		CONS_Printf(player, "\x85" .. "ERROR: " .. "\x80" .. "Number out of range (1 - 11)")
+	if (shieldselected < 0) or (shieldselected > 10) then
+		CONS_Printf(player, "\x85" .. "ERROR: " .. "\x80Number out of range (0 - 10)")
 		return
 	end
 	
-	local shielddata = shieldtypes[shieldselected]
+	local shieldData = shieldList[shieldselected]
 
-	P_SwitchShield(player, shielddata.value)
-	S_StartSound(player.mo, shielddata.sound)
-end)
+	P_SwitchShield(player, shieldData.value)
+	S_StartSound(player.mo, shieldData.sound)
+end
+COM_AddCommand('shield', CMD_ShieldCommand)
 
 -- super, self-explanatory. Can be used on you, or the other players.
-COM_AddCommand("super", function(player, playerid)
+local function CMD_SuperToggle(player, playerid)
 	if G_IsNotOnLevel(player) then return end
-
-	if (player.solchar) then
-		CONS_Printf(player, "This command doesn't work for \x82" .. "solchars characters... \x80" .. "Sorry!")
-		return
-	end
 
 	if not All7Emeralds(emeralds) then
 		CONS_Printf(player, "You need all the".. "\x83 emeralds" .. "\x80 to do this!")
@@ -453,25 +463,12 @@ COM_AddCommand("super", function(player, playerid)
 		return
 	end
 
-	// yeah
-	local function P_ResetSuper(player)
-		player.powers[pw_super] = 0 -- do not remove the super flag, you wont be super if you press spin after all
-		player.powers[pw_flashing] = TICRATE
-		
-		P_SpawnShieldOrb(player)
-		P_FlashPal(player, PAL_WHITE, 3)
-		player.realmo.color = player.skincolor
-		
-		P_RestoreMusic(player)
-		S_StartSound(player.realmo, sfx_s3k66)
-	end
-	
 	if (playerid == "all") and JoeBase.IsServerOrAdmin(player) then
 		for otherplayer in players.iterate do
 			if not otherplayer.powers[pw_super] then
 				otherplayer.charflags = $ | SF_SUPER
 				otherplayer.rings = $ + 100
-				P_DoSuperTransformation(otherplayer, true)
+				P_DoSuperTransformation(otherplayer, false)
 			else
 				otherplayer.rings = $ - 50
 				P_ResetSuper(otherplayer)
@@ -481,6 +478,7 @@ COM_AddCommand("super", function(player, playerid)
 	end
 	
 	playerid = tonumber(playerid)
+
 	if (playerid == nil) then
 		if not player.powers[pw_super] then
 			player.charflags = $ | SF_SUPER
@@ -490,25 +488,29 @@ COM_AddCommand("super", function(player, playerid)
 			player.rings = $ - 50
 			P_ResetSuper(player)
 		end
-	else
-		if (players[playerid] == nil) then
-			CONS_Printf(player, "\x85" .. "ERROR: " .. "\x80" .. "That player doesn't exist!")
-			return
-		end
-		
-		if not players[playerid].powers[pw_super] then
-			players[playerid].charflags = $ | SF_SUPER
-			players[playerid].rings = $ + 100
-			P_DoSuperTransformation(players[playerid], false)
-		else
-			players[playerid].rings = $ - 50
-			P_ResetSuper(players[playerid])
-		end
+		return
 	end
-end)
+
+	local player_selected = players[playerid]
+	
+	if (player_selected == nil) then
+		CONS_Printf(player, "\x85" .. "ERROR: " .. "\x80That player doesn't exist!")
+		return
+	end
+		
+	if not player_selected.powers[pw_super] then
+		player_selected.charflags = $ | SF_SUPER
+		player_selected.rings = $ + 100
+		P_DoSuperTransformation(player_selected, false)
+	else
+		player_selected.rings = $ - 50
+		P_ResetSuper(player_selected)
+	end
+end
+COM_AddCommand("super", CMD_SuperToggle)
 
 -- suicide, a replacement that kills you with some extras.
-COM_AddCommand('suicide', function(player)
+local function CMD_SuicideCommand(player)
 	if G_IsNotOnLevel(player) then return end
 
 	if player.mo then
@@ -518,10 +520,11 @@ COM_AddCommand('suicide', function(player)
 			P_DamageMobj(player.mo, nil, nil, 1, DMG_INSTAKILL)
 		end
 	end
-end)
+end
+COM_AddCommand('suicide', CMD_SuicideCommand)
 
 -- Colorize, yeah, that too.
-COM_AddCommand("colorize", function(player)
+local function CMD_ColorizeToggle(player)
 	if G_IsNotOnLevel(player) then return end
 
 	if (player.force_colorize == false) then
@@ -532,10 +535,11 @@ COM_AddCommand("colorize", function(player)
 
 	local message = string.format("You %s %s!", (player.force_colorize) and "are now" or "aren't", "colorized")
 	CONS_Printf(player, message)
-end)
+end
+COM_AddCommand("colorize", CMD_ColorizeToggle)
 
 -- rings, how many times im going to say "self-explanatory"?
-COM_AddCommand("rings", function(player, arg1)
+local function CMD_RingsCommand(player, arg1)
 	if G_IsNotOnLevel(player) then return end
 
     if arg1 == nil then
@@ -549,10 +553,11 @@ COM_AddCommand("rings", function(player, arg1)
         player.rings = 0
         P_GivePlayerRings(player, arg1)
     end
-end)
+end
+COM_AddCommand("rings", CMD_RingsCommand)
 
 -- lives, ...
-COM_AddCommand("lives", function(player, arg1)
+local function CMD_LivesCommand(player, arg1)
 	if G_IsNotOnLevel(player) then return end
 
     if arg1 == nil then
@@ -566,10 +571,11 @@ COM_AddCommand("lives", function(player, arg1)
         player.lives = 0
         P_GivePlayerLives(player, arg1)
     end
-end)
+end
+COM_AddCommand("lives", CMD_LivesCommand)
 
 -- scale, for all players
-COM_AddCommand("scale", function(player, scale)
+local function CMD_ScaleCommand(player, scale)
 	if G_IsNotOnLevel(player) then return end
 
 	local nScale = J_DoFloatNumber(scale)
@@ -582,10 +588,11 @@ COM_AddCommand("scale", function(player, scale)
 	if (tonumber(nScale)) and (nScale > 0) then
 		player.mo.destscale = nScale
 	end
-end)
+end
+COM_AddCommand("scale", CMD_ScaleCommand)
 
 -- shoes, no longer admin only.
-COM_AddCommand("shoes", function(player, time)
+local function CMD_ShoesCommand(player, time)
 	if G_IsNotOnLevel(player) then return end
 
 	if not time then
@@ -598,10 +605,11 @@ COM_AddCommand("shoes", function(player, time)
 		player.powers[pw_sneakers] = N*TICRATE
 		S_StartSound(player.mo, sfx_3db06)
 	end
-end)
+end
+COM_AddCommand("shoes", CMD_ShoesCommand)
 
 -- invuln, oh my god i hate saying "self-explanatory" too many times
-COM_AddCommand("invuln", function(player, time)
+local function CMD_InvulnCommand(player, time)
 	if G_IsNotOnLevel(player) then return end
 	
 	if not time then
@@ -614,4 +622,5 @@ COM_AddCommand("invuln", function(player, time)
 		player.powers[pw_invulnerability] = N*TICRATE
 		S_StartSound(player.mo, sfx_3db06)
 	end
-end)
+end
+COM_AddCommand("invuln", CMD_InvulnCommand)

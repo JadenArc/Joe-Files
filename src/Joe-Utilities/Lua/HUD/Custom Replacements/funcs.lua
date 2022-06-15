@@ -1,31 +1,7 @@
 //
-// Functions for both Titlecard and Intermission Screens
-// By Jaden
+-- Functions for both Titlecard and Intermission Screens
+-- By Jaden
 //
-
--- shortcut.
-local function V_GetZigPatch(v, player)
-	local zigzag = v.cachePatch("J_ZIGZAG")
-	
-	local zigzag_text, zigzag_text_flip, colormap;
-
-	if not (mapheaderinfo[gamemap].levelflags & LF_WARNINGTITLE)
-		zigzag_text = v.cachePatch("J_ZZTEXT")
-		zigzag_text_flip = v.cachePatch("J_ZZTEXTF")
-
-		local colornum = (player.skincolor) or R_GetColorByName(CV_FindVar("color").string)
-
-		colormap = v.getColormap(TC_DEFAULT, colornum)
-	else
-		zigzag_text = v.cachePatch("JW_ZZTEXT")
-		zigzag_text_flip = v.cachePatch("JW_ZZTEXTF")
-
-		colormap = v.getColormap(TC_DEFAULT, SKINCOLOR_SALMON)
-	end
-
-	return zigzag, zigzag_text, zigzag_text_flip, colormap
-end
-rawset(_G, "V_GetZigPatch", V_GetZigPatch)
 
 // yeah.
 local function V_LevelActNumWidth(v, num)
@@ -98,3 +74,19 @@ local function V_AlignLevelTitle(v, x, y, str, type)
 	v.drawLevelTitle(x, y, str, 0)
 end
 rawset(_G, "V_AlignLevelTitle", V_AlignLevelTitle)
+
+-- true
+local function V_DrawAlignedPatch(v, x, y, patch, flags, align)
+	flags = $ or 0
+
+	local offset = 0
+
+	if (align == "center") then
+		offset = patch.width / 2
+	elseif (align == "right")
+		offset = patch.width
+	end
+
+	v.draw(x - offset, y, patch, flags, nil)
+end
+rawset(_G, "V_DrawAlignedPatch", V_DrawAlignedPatch)

@@ -18,7 +18,7 @@ dofolder("customrankings_match.lua")
 folder = "HUD/Custom Replacements"
 dofolder("funcs.lua")
 dofolder("intermission.lua")
---dofolder("titlecard.lua") //disabled until further inspiration.
+dofolder("titlecard.lua")
 
 folder = "HUD"
 dofolder("customhud.lua")
@@ -41,3 +41,4 @@ dofolder("mpemblems.lua")
 
 folder = "Misc"
 dofolder("customchat.lua")
+dofolder("joinsounds.lua")

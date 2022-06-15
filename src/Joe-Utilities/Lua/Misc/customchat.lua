@@ -14,6 +14,10 @@ local chatsound_teams = sfx_ding
 local chatsound_private = sfx_s3k92
 local chatsound_unmuted = sfx_ideya
 
+//
+// Mute and unmuting commands
+//
+
 local CL_MuteThink = do
 	for player in players.iterate do
 		-- could leave this as a int, but i dont want sum temp-mutes.......
@@ -54,7 +58,7 @@ local CMD_MutePlayer = function(player, target, reason)
 	target_player.muted = true
 	target_player.muted_reason = reason
 
-	local message = string.format("%s\x80 muted %s\x80. \x82(\x80%s\x82)", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false), target_player.muted_reason)
+	local message = string.format("%s\x80 muted %s\x80. \x82(%s)", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false), target_player.muted_reason)
 
 	chatprint(message)
 	S_StartSound(nil, chatsound_event)
@@ -91,17 +95,20 @@ local CMD_UnmutePlayer = function(player, target)
 end
 COM_AddCommand("unmuteplayer", CMD_UnmutePlayer, COM_ADMIN)
 
-// re-write the team change logic, and print info of it on chat!
-local CL_TeamChange = function(player, teams, is_spec, autobalance, scramble)
+//
+// hurt messages, team info...
+//
+
+local CL_TeamChange = function(player, teams, from_spec, autobalance, scramble)
 	-- when you have to redo every logic
 	if G_GametypeHasTeams() then
-		player.spectator = not (is_spec or teams)
+		player.spectator = not (from_spec or teams)
 	
 		player.ctfteam = teams
 		player.playerstate = PST_REBORN
 	
 	else
-		player.spectator = not is_spec
+		player.spectator = not from_spec
 		player.playerstate = PST_REBORN
 	end
 
@@ -126,7 +133,7 @@ local CL_TeamChange = function(player, teams, is_spec, autobalance, scramble)
 	elseif (player.ctfteam == 1) or (player.ctfteam == 2) then
 		reason = string.format("%s\x82 switched to the %s\x80.", player_name, team_str)
 
-	elseif (not team and is_spec) then
+	elseif (not team and from_spec) then
 		reason = string.format("%s\x82 entered the game\x80.", player_name)
 
 	// spectator.
@@ -140,6 +147,10 @@ local CL_TeamChange = function(player, teams, is_spec, autobalance, scramble)
 	return false
 end
 addHook("TeamSwitch", CL_TeamChange)
+
+//
+// Actual Chat logic
+//
 
 local C_FinalMessageResult = function(player, type, target, message)
 	local player_name;
@@ -157,7 +168,7 @@ local C_FinalMessageResult = function(player, type, target, message)
 		
 		-- if we are on dedicated server, and the server sends a message...
 		if (player == server) and not player.realmo then
-			chatprint("\x82SERVER" .. "\x80: " .. message)
+			chatprint("<\x82SERVER" .. "\x80> " .. message)
 			S_StartSound(nil, sfx_s1a1, nil)
 			return true
 		end
@@ -208,13 +219,19 @@ local C_FinalMessageResult = function(player, type, target, message)
 			return true
 		end
 		
-		local player_msg = "\x82" .. "To " .. target_name .. "\x80: " .. message
-		local target_msg = "\x82" .. "From " .. player_name .. "\x80: " .. message
+		local player_msg = "\x82[To " .. target_name .. "\x82]\x80: " .. message
+		local target_msg = "\x82[From " .. player_name .. "\x82]\x80: " .. message
+		
 		chatprintf(player, player_msg)
 		S_StartSound(nil, chatsound_private, player)
 
 		chatprintf(target, target_msg)
 		S_StartSound(nil, chatsound_private, target)
+	
+	-- csay...?
+	elseif (type == 3) then
+		-- i can do sum custom csay function, but hud functions cant do anything here...
+		return false
 	end
 	
 	return true

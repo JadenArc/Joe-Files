@@ -122,18 +122,6 @@ local function P_FreezeThink(player)
 
 	if (player.is_frozen) then
 		player.powers[pw_nocontrol] = max($, 2)
-
-		mo.color = SKINCOLOR_ICY
-
-		if not (player.force_colorize) then
-			mo.colorized = true
-		end
-	else
-		mo.color = player.skincolor
-
-		if not (player.force_colorize) then
-			mo.colorized = false
-		end
 	end
 end
 addHook("PlayerThink", P_FreezeThink)

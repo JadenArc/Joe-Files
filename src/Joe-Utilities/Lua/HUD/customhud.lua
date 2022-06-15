@@ -18,7 +18,7 @@ local DrawAllRankings = function(v)
 		table.insert(coop_table, player) 
 	end
 
-	-- get players, noncoop edition
+	-- get players, match edition
 	for player in players.iterate do 
 		if player.spectator then continue end
 		
