@@ -16,7 +16,6 @@ dofolder('SuperFreeslots.lua')
 -- Resources
 folder = "Resources"
 dofolder('corkbuff.lua')
-dofolder('joinandleavesounds.lua')
 dofolder('spectators.lua')
 	
 -- ExitTimer
@@ -24,11 +23,6 @@ folder = "ExitTimer"
 dofolder('ExitTimerLogic.lua')
 dofolder('ExitTimerHUD.lua')
 
--- Menu
-folder = "Menu"
-dofolder('menu_api.lua')
-dofolder('menu_funcs.lua')
-	
 -- General
 dofile('afk.lua')
 dofile('banskins.lua')
@@ -36,6 +30,11 @@ dofile('RTV.lua')
 dofile('tipmessages.lua')
 dofile('momentum.lua')
 dofile('nametags.lua')
+
+-- Menu
+folder = "Menu"
+dofolder('menu_api.lua')
+dofolder('menu_funcs.lua')
 
 //
 //
