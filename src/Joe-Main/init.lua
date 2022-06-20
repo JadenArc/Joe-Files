@@ -23,6 +23,11 @@ dofolder('spectators.lua')
 folder = "ExitTimer"
 dofolder('ExitTimerLogic.lua')
 dofolder('ExitTimerHUD.lua')
+
+-- Menu
+folder = "Menu"
+dofolder('menu_api.lua')
+dofolder('menu_funcs.lua')
 	
 -- General
 dofile('afk.lua')
