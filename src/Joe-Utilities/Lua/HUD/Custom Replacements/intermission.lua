@@ -8,9 +8,6 @@
 
 local inter_tics = 0
 
--- sum constants
-local INT_NORMAL, INT_PERFECT, INT_TOTAL = 0, 1, 2
-
 local inter_struct = {
 	-- total score between time, and rings.
 	totalscore = 0,
@@ -21,6 +18,9 @@ local inter_struct = {
 	-- a
 	bonus = {}
 }
+
+-- sum constants
+local INT_NORMAL, INT_PERFECT, INT_TOTAL = 0, 1, 2
 
 //
 // CVars
@@ -81,6 +81,8 @@ local function I_GetTimeBonus(player)
 	elseif (secs < 480) then bonus = 300	//  8:00
 	elseif (secs < 540) then bonus = 200	//  9:00
 	elseif (secs < 600) then bonus = 100	// 10:00
+	else
+		bonus = 0 // You're too slow!
 	end
 
 	return bonus
@@ -101,8 +103,7 @@ local function I_GetGuardBonus(player)
 	return bonus
 end
 
-local function I_GetRingBonus(player, nights)
-	local rings = 0
+local function I_GetRingBonus(player)
 	local totalrings = 0
 
 	for stplyr in players.iterate do
@@ -110,20 +111,23 @@ local function I_GetRingBonus(player, nights)
 	end
 
 	-- are we on an actual NiGHTS level?
-	if (maptol & TOL_NIGHTS) then
-		rings = player.totalmarescore
+	if (mapheaderinfo[gamemap].typeoflevel & TOL_NIGHTS) then
+		return player.totalmarescore
 	
 	-- NiGHTS Special Stages, and the MP ones too!
 	elseif I_IsSpecialStage(gamemap) then
-		rings = totalrings * 100
+		return totalrings * 100
 
 	-- Normal level.
 	else
-		rings = player.rings * 100
+		return player.rings * 100
 	end
 
+	return 0
+end
 
-	return max(0, rings)
+local function I_GetLinkBonus(player)
+	return max(0, (player.maxlink - 1) * 100)
 end
 
 local function I_GetLapBonus(player)
@@ -140,27 +144,27 @@ local I_SetBonus = {
 	[0] = function(player)
 		I_DoBonus(INT_NORMAL, I_GetTimeBonus(player),  "YB_TIME")
 		I_DoBonus(INT_NORMAL, I_GetRingBonus(player),  "YB_RING")
-		I_DoBonus(INT_PERFECT, nil, "YB_PERFE")
+		I_DoBonus(INT_PERFECT, 					 nil, "YB_PERFE")
 
-		I_DoBonus(INT_TOTAL, 0, "YB_TOTAL")
+		I_DoBonus(INT_TOTAL, 					   0, "YB_TOTAL")
 	end,
 
 	-- Guard Bonus
 	[1] = function(player)
 		I_DoBonus(INT_NORMAL, I_GetGuardBonus(player), "YB_GUARD")
-		I_DoBonus(INT_NORMAL, I_GetRingBonus(player), "YB_RING")
-		I_DoBonus(INT_PERFECT, nil, nil)
+		I_DoBonus(INT_NORMAL,  I_GetRingBonus(player),  "YB_RING")
+		I_DoBonus(INT_PERFECT,					  nil, 		  nil)
 			
-		I_DoBonus(INT_TOTAL, 0, "YB_TOTAL")
+		I_DoBonus(INT_TOTAL, 						0, "YB_TOTAL")
 	end,
 
 	-- ERZ3 (???)
 	[2] = function(player)
 		I_DoBonus(INT_NORMAL, I_GetGuardBonus(player), "YB_GUARD")
-		I_DoBonus(INT_NORMAL, I_GetRingBonus(player),  "YB_RING")
-		I_DoBonus(INT_PERFECT, nil, "YB_PERFE")
+		I_DoBonus(INT_NORMAL,  I_GetRingBonus(player),  "YB_RING")
+		I_DoBonus(INT_PERFECT,					  nil, "YB_PERFE")
 			
-		I_DoBonus(INT_TOTAL, 0, "YB_TOTAL")
+		I_DoBonus(INT_TOTAL, 						0, "YB_TOTAL")
 	end,
 
 	//
@@ -171,14 +175,18 @@ local I_SetBonus = {
 	[3] = function(player)
 		I_DoBonus(INT_NORMAL, I_GetRingBonus(player), nil)
 		I_DoBonus(INT_NORMAL,  I_GetLapBonus(player), nil)
-		I_DoBonus(INT_PERFECT, 					nil, nil)
+		I_DoBonus(INT_PERFECT, 					 nil, nil)
 
-		I_DoBonus(INT_TOTAL, 					nil, nil)
+		I_DoBonus(INT_TOTAL, 					   0, nil)
 	end,
 
 	-- NiGHTS, link?
 	[4] = function(player)
-		return
+		I_DoBonus(INT_NORMAL, I_GetLinkBonus(player), nil)
+		I_DoBonus(INT_NORMAL,  I_GetLapBonus(player), nil)
+		I_DoBonus(INT_PERFECT,					 nil, nil)
+
+		I_DoBonus(INT_TOTAL,					   0, nil)
 	end
 }
 
@@ -191,19 +199,19 @@ local function V_DrawEmeralds(v)
 	local direction = (inter_tics % 360) << FRACBITS
 
 	for i = 0, 6 do
-		local patches = v.cachePatch("CHAOS" .. (i + 1))
+		local patch = v.cachePatch("CHAOS" .. (i + 1))
 		local flags = V_80TRANS
 		
 		fa = FixedAngle(direction)
 		
-		x = (320 << 15) + (42 * cos(fa))
-		y = (216 << 15) + (28 * sin(fa))
+		x = (307 << 15) + (42 * cos(fa))
+		y = (222 << 15) + (28 * sin(fa))
 
 		direction = $ + ((360 << FRACBITS) / 7)
 
 		if (emeralds & (EMERALD1 << i)) then flags = 0 end
 		
-		v.drawScaled(x - (13*FRACUNIT), y + (4*FRACUNIT), FRACUNIT, patches, flags)
+		v.drawScaled(x, y, FRACUNIT, patch, flags)
 	end
 end
 
@@ -227,25 +235,27 @@ local I_Ticker = function()
 	-- Cache sum stuff
 	if (inter_tics == 1) then
 		I_SetBonus[mapheaderinfo[gamemap].bonustype](consoleplayer)
+	end
+
+	-- sussy pussy
+	if (inter_tics < inter_delay) then return end
 
 	-- Do the rest now
-	elseif (inter_tics > inter_delay) then
-		for player in players.iterate do
-			if (player.cmd.buttons & BT_SPIN) then
-				inter_struct.skipped = true
-			end
+	for player in players.iterate do
+		if (player.cmd.buttons & BT_SPIN) then
+			inter_struct.skipped = true
 		end
+	end
 
-		for _, inter in ipairs(inter_struct.bonus) do
-			if (inter.reward ~= INT_NORMAL) or not inter.info then continue end
+	for _, inter in ipairs(inter_struct.bonus) do
+		if (inter.info == nil) then continue end
 				
-			inter.info = $ - 222
-			inter_struct.totalscore = $ + 222
+		inter.info = $ - 222
+		inter_struct.totalscore = $ + 222
 		
-			if (inter.info < 0) or (inter_struct.skipped) then
-				inter_struct.totalscore = $ + inter.info
-				inter.info = 0
-			end
+		if (inter.info < 0) or (inter_struct.skipped) then
+			inter_struct.totalscore = $ + inter.info
+			inter.info = 0
 		end
 	end
 end
@@ -303,10 +313,10 @@ local IH_DrawIntermission = function(v, stagefailed)
 		[0] = ease.outexpo(inter_anim, 200, 0),
 
 		-- title
-		[1] = ease.inoutback(inter_anim - 4, 640, 0),
+		[1] = ease.outback(inter_anim - 4, 640, 0),
 
 		-- scores
-		[2] = ease.outquint(inter_anim - 8, 640, 0)
+		[2] = ease.inoutquart(inter_anim - 8, 640, 0)
 	}
 
 	//
@@ -372,7 +382,7 @@ local IH_DrawIntermission = function(v, stagefailed)
 
 	-- are we on a special stage?
 	if I_IsSpecialStage(gamemap) then
-		yoffs = $ + v.levelTitleHeight(zone_strings[2]) + 1
+		yoffs = $ + 19
 
 		V_AlignLevelTitle(v, 160 - inter_trueanims[1], yoffs, zone_strings[2], "center")
 		V_DrawEmeralds(v)
@@ -398,21 +408,21 @@ local IH_DrawIntermission = function(v, stagefailed)
 	-- only draw total on special stages, so we can see the emeralds
 	if I_IsSpecialStage(gamemap) or (maptol & TOL_NIGHTS) then
 
-		V_DrawAlignedPatch(v, 76 - inter_trueanims[2], 166, v.cachePatch("YB_TOTAL"), flags, "center")
+		v.draw(132 - inter_trueanims[2], 166, v.cachePatch("YB_TOTAL"), flags)
 		v.drawNum(252 + inter_trueanims[2], 167, inter_struct.totalscore, flags)
 
 		return
 	end
 
 	for i, inter in ipairs(inter_struct.bonus) do
-		if (inter.reward == INT_PERFECT) and (inter.info == nil) then continue end
+		if (inter.info == nil) then continue end
 		
 		local bonus_type = (inter.reward == INT_TOTAL) and inter_struct.totalscore or inter.info
 
-		local x = (inter.reward == 2) and 252 or 272
+		local x = (inter.reward == INT_TOTAL) and 252 or 272
 		local y = 93 + (16 * (i - 1))
 
-		V_DrawAlignedPatch(v, 76 - inter_trueanims[2], y, v.cachePatch(inter.patch), flags, "center")
+		v.draw(132 - inter_trueanims[2], y, v.cachePatch(inter.patch), flags)
 		v.drawNum(x + inter_trueanims[2], y + 1, bonus_type, flags)
 	end
 end

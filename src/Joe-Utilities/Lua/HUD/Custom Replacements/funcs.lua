@@ -74,19 +74,3 @@ local function V_AlignLevelTitle(v, x, y, str, type)
 	v.drawLevelTitle(x, y, str, 0)
 end
 rawset(_G, "V_AlignLevelTitle", V_AlignLevelTitle)
-
--- true
-local function V_DrawAlignedPatch(v, x, y, patch, flags, align)
-	flags = $ or 0
-
-	local offset = 0
-
-	if (align == "center") then
-		offset = patch.width / 2
-	elseif (align == "right")
-		offset = patch.width
-	end
-
-	v.draw(x - offset, y, patch, flags, nil)
-end
-rawset(_G, "V_DrawAlignedPatch", V_DrawAlignedPatch)
