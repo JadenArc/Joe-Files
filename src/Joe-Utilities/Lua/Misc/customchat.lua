@@ -58,7 +58,7 @@ local CMD_MutePlayer = function(player, target, reason)
 	target_player.muted = true
 	target_player.muted_reason = reason
 
-	local message = string.format("%s\x80 muted %s\x80. \x82(%s)", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false), target_player.muted_reason)
+	local message = string.format("\x82* %s\x82 muted %s\x82. (%s)", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false), target_player.muted_reason)
 
 	chatprint(message)
 	S_StartSound(nil, chatsound_event)
@@ -88,7 +88,7 @@ local CMD_UnmutePlayer = function(player, target)
 
 	target_player.muted = false
 
-	local message = string.format("%s\x80 unmuted %s\x80!", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false))
+	local message = string.format("\x82* %s\x82 unmuted %s\x82!", JoeBase.GetPlayerName(player, false, false), JoeBase.GetPlayerName(target_player, false, false))
 
 	chatprint(message)
 	S_StartSound(nil, chatsound_unmuted)
@@ -101,7 +101,7 @@ COM_AddCommand("unmuteplayer", CMD_UnmutePlayer, COM_ADMIN)
 
 local CL_TeamChange = function(player, teams, from_spec, autobalance, scramble)
 	-- when you have to redo every logic
-	if G_GametypeHasTeams() then
+	if (gametyperules & GTR_TEAMS) then -- why, in the FUCK does every "G_" function have to work inside of a level?????
 		player.spectator = not (from_spec or teams)
 	
 		player.ctfteam = teams
@@ -123,25 +123,26 @@ local CL_TeamChange = function(player, teams, from_spec, autobalance, scramble)
 
 	// autobalance.
 	if (autobalance) then
-		reason = string.format("%s\x82 was autobalanced to the %s\x80.", player_name, team_str)
+		reason = string.format("%s\x82 was autobalanced to the %s", player_name, team_str)
 
 	// team scramble.
 	elseif (scramble) then
-		reason = string.format("%s\x82 was scrambled to the %s\x80.", player_name, team_str)
+		reason = string.format("%s\x82 was scrambled to the %s", player_name, team_str)
 
 	// IT, Red or Blue Team.
 	elseif (player.ctfteam == 1) or (player.ctfteam == 2) then
-		reason = string.format("%s\x82 switched to the %s\x80.", player_name, team_str)
+		reason = string.format("%s\x82 switched to the %s", player_name, team_str)
 
+	// A new challenger appears!
 	elseif (not team and from_spec) then
-		reason = string.format("%s\x82 entered the game\x80.", player_name)
+		reason = string.format("%s\x82 entered the game", player_name)
 
 	// spectator.
 	elseif (player.spectator) then
-		reason = string.format("%s\x82 became a spectator\x80.", player_name)
+		reason = string.format("%s\x82 became a spectator", player_name)
 	end
 
-	chatprint("\x82* " .. reason)
+	chatprint("\x82* " .. reason .. "\x80.")
 	S_StartSound(nil, chatsound_event, nil)
 
 	return false
@@ -181,14 +182,14 @@ local C_FinalMessageResult = function(player, type, target, message)
 		
 		-- self-explanatory.
 		if not (gamestate == GS_LEVEL) then
-			chatprintf(player, "\x82" .. "* Message failed, we ain't on a level, dumbo.")
+			chatprintf(player, "\x82* Message failed, we ain't on a level, dumbo.")
 			S_StartSound(nil, chatsound_fail, player)
 			return true
 		end
 
 		-- dont be a troll...
 		if (player.ctfteam == 0) then
-			chatprintf(player, "\x82" .. "* Message failed, spectators ain't on teams!")
+			chatprintf(player, "\x82* Message failed, spectators ain't on teams!")
 			S_StartSound(nil, chatsound_fail, player)
 			return true
 		end
