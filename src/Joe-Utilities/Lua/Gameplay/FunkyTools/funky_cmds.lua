@@ -3,7 +3,7 @@
 -- This is basically on every command.
 local G_IsNotOnLevel = function(player)
 	if (gamestate ~= GS_LEVEL) then
-		CONS_Printf(player, "This can only be used on a level.")
+		CONS_Printf(player, "This can only be used on a \x82level\x80.")
 		return true
 	end
 
@@ -17,7 +17,7 @@ local P_ResetSuper = function(player)
 	
 	P_SpawnShieldOrb(player) -- if you had a shield, restore it!
 	
-	P_FlashPal(player, PAL_WHITE, 3)
+	P_FlashPal(player, PAL_WHITE, 5)
 	player.realmo.color = player.skincolor
 		
 	P_RestoreMusic(player)
@@ -32,7 +32,7 @@ end
 CV_RegisterVar({
 	name = "emeralds", 
 	defaultvalue = "No",
-	flags = CV_NETVAR|CV_CALL|CV_NOINIT,
+	flags = CV_NETVAR | CV_CALL | CV_NOINIT,
 	possiblevalue = CV_YesNo, 
 	func = function(var)
 		local emflags = 127 -- result of all emerald flags
@@ -250,25 +250,22 @@ COM_AddCommand("scaleto", CMD_ScaleToCommand, 1)
 local function CMD_SpawnobjectCommand(player, object)
 	if G_IsNotOnLevel(player) then return end
 
-    if object == nil then
-        CONS_Printf(player, "\x82spawnobject <object>\x80: Spawns object via MT_* \n" ..
+    if (object == nil) then
+        CONS_Printf(player, "\x82spawnobject <object>\x80: Spawns object via MT_*\n" ..
 							"Go to https://wiki.srb2.org/wiki/List_of_Object_types to get a list of Object Types."
 		)
         return
     end
 
-    object = _G["MT_" .. string.upper(object)]
-	
-	if not object then
-		CONS_Printf(player, "This object doesn't exist! (maybe mistyping?)")
+    object = _G[string.upper(object)]
+
+	if (object == nil) then
+		CONS_Printf(player, "That object doesn't exist! \x82(mistyping?)")
 		return
 	end
 
     if JoeBase.IsValid(player.mo) then
-    	local y = 135 * sin(player.drawangle)
-    	local x = 135 * cos(player.drawangle)
-
-		local result = P_SpawnMobjFromMobj(player.mo, x, y, 8*FRACUNIT, object)
+		local result = P_SpawnMobjFromMobj(player.mo, 0, 0, 8*FRACUNIT, object)
  		
  		result.angle = player.mo.angle
 		P_SetScale(result, player.mo.scale)
@@ -291,10 +288,11 @@ COM_AddCommand('killallenemies', CMD_KillEnemiesCommand, 1)
 -- print, and so do i.
 local function CMD_DoPrint(player, typeof, message)
 	if not typeof then
-		CONS_Printf(player, "\x82print <type> <message>\x80: print something to the console")
+		CONS_Printf(player, "\x82print [type] <message>\x80: print something to the console")
 		CONS_Printf(player, "types: Standard, Notice, Warning, Error")
 		return
 	end
+	
 	if not message then
 		message = typeof
 		typeof = "s"
@@ -413,7 +411,7 @@ COM_AddCommand("noclip", CMD_NoclipToggle, 1)
 
 -- shield, reworked since the old one sucked.
 local shieldList = {
-	[0] = {value = SH_NONE, 	    sound = nil}, 		 -- None
+	[0] = {value = SH_NONE, 	    sound = sfx_none}, 	 -- None
 	[1] = {value = SH_PITY, 	    sound = sfx_shield}, -- Pity
 	[2] = {value = SH_WHIRLWIND,    sound = sfx_wirlsg}, -- Whirlwind
 	[3] = {value = SH_ARMAGEDDON,   sound = sfx_armasg}, -- Armageddon
@@ -491,6 +489,12 @@ local function CMD_SuperToggle(player, playerid)
 		return
 	end
 
+	-- selecting players is only for admins!
+	if not JoeBase.IsServerOrAdmin(player) then
+		CONS_Printf("Only admins can use this feature.")
+		return
+	end
+
 	local player_selected = players[playerid]
 	
 	if (player_selected == nil) then
@@ -513,7 +517,7 @@ COM_AddCommand("super", CMD_SuperToggle)
 local function CMD_SuicideCommand(player)
 	if G_IsNotOnLevel(player) then return end
 
-	if player.mo then
+	if JoeBase.IsValid(player.mo) then
 		if (player.mo.eflags & MFE_UNDERWATER) then
 			P_DamageMobj(player.mo, nil, nil, 1, DMG_DROWNED)
 		else
@@ -533,7 +537,7 @@ local function CMD_ColorizeToggle(player)
 		player.force_colorize = false
 	end
 
-	local message = string.format("You %s %s!", (player.force_colorize) and "are now" or "aren't", "colorized")
+	local message = string.format("You are now %s", (player.force_colorize) and "colorized!" or "un-colorized...")
 	CONS_Printf(player, message)
 end
 COM_AddCommand("colorize", CMD_ColorizeToggle)
@@ -600,9 +604,9 @@ local function CMD_ShoesCommand(player, time)
 		return
 	end
 
-	local N = tonumber(time)
-	if N ~= nil then
-		player.powers[pw_sneakers] = N*TICRATE
+	time = tonumber($)
+	if (time ~= nil) then
+		player.powers[pw_sneakers] = time * TICRATE
 		S_StartSound(player.mo, sfx_3db06)
 	end
 end
@@ -617,9 +621,9 @@ local function CMD_InvulnCommand(player, time)
 		return
 	end
 
-	local N = tonumber(time)
-	if N ~= nil then
-		player.powers[pw_invulnerability] = N*TICRATE
+	time = tonumber($)
+	if (time ~= nil) then
+		player.powers[pw_invulnerability] = time * TICRATE
 		S_StartSound(player.mo, sfx_3db06)
 	end
 end
