@@ -13,6 +13,7 @@ local UselessTips = {
 	"Type \130scale \128on your console to be bigger than others! There's no limit.",
 	"Do you need to do something on the real life? Type \130afk \128on your console to be afk. You will also be invulnerable to everything and be stopped on whatever place you are.",
 	"Do you want to join the discord server? Type \130discordlink \128on your console to see the link, and join it!",
+	"Type \131joe_menu \128to open a menu and change some options to have some better gameplay. Admins have more privileges than normal players.",
 
 	-- jokes
 	"\133Joe \128is always here, he is watching you and your every move. All hail \133Joe\128. \133ALL HAIL JOE!",
@@ -29,12 +30,12 @@ addHook("ThinkFrame", function()
 	
 	tiptimer = $ and $ - 1 or 0
 	
-	if not tiptimer then
+	if (tiptimer < 0) then
 		local chatMessage = "\x81<Joe's Soul> \x80" .. UselessTips[P_RandomRange(1, #UselessTips)]
 		chatprint(chatMessage, false)
 		
 		S_StartSound(nil, sfx_tpmess)
-		tiptimer = 150*TICRATE -- 3 minutes
+		tiptimer = 150 * TICRATE -- 3 minutes
 	end
 end)
 

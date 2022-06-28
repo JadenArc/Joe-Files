@@ -13,10 +13,10 @@ end
 //
 
 -- create sum flags
-local createFlags = function(tname, t)
-    for i = 1,#t do
+local createFlags = function(n, t)
+    for i = 1, #t do
         rawset(_G, t[i], 2 ^ (i - 1))
-        table.insert(tname, {string = t[i], value = 2 ^ (i - 1)} )
+        table.insert(n, {str = t[i], val = 2 ^ (i - 1)} )
     end
 end
 
@@ -60,6 +60,12 @@ menu_framework.current = -1 -- current menu table
 menu_framework.cursor = -1 -- the actual cursor item position
 menu_framework.page = -1 -- the actual page on the menu
 
+-- a lot of music stuff that i cant explain
+local previous_music = ""
+local previous_musicmenu = ""
+local previous_time = 0
+local previous_timemenu = 0
+
 local function LM_ActiveMenu()
 	return menu_framework.active and (menu_framework.current ~= -1) and (gamestate == GS_LEVEL)
 end
@@ -72,7 +78,9 @@ end
 local function LM_CloseMenu()
 	if not LM_ActiveMenu() then return end
 
+	S_ChangeMusic(previous_music, true, consoleplayer, mapmusflags, previous_time)
 	input.setMouseGrab(true)
+	
 	LM_Reset()
 end
 
@@ -124,56 +132,35 @@ local function LM_PressedKey(keyevent, code)
 	return (keyevent.num == code)
 end
 
-/*local function test_function(menu)
-	LM_GoToPage(2)
-end
-
-local function test_function2(menu)
-	LM_PrevPage()
-end
-
-local test_menu = {
-	{
-		attributes = {
-			pos = {30, 30},
-			header = {text = "Test Menu", color = V_YELLOWMAP},
-			start = {item = 2},
-			previous = {page = -1, item = -1},
-			style = MMT_NORMAL
-		},
-		functions = {handler = nil, ticker = nil, drawer = nil},
-		content = {
-			{id = MIT_HEADER, flags = 0, string = "Test Header", color = 0, func = nil, cvar = nil, pos_y = 0},
-			{id = MIT_STRING, flags = 0, string = "Test String", color = 0, func = nil, cvar = nil, pos_y = 12},
-			{id = MIT_STRING, flags = MIF_FUNCTION, string = "Test Function...", color = 0, func = test_function, cvar = nil, pos_y = 22},
-			{id = MIT_STRING, flags = MIF_CVAR_STRING, string = "Test CVar String", color = 0, func = nil, cvar = CV_FindVar("cooplives"), pos_y = 42},
-			{id = MIT_STRING, flags = MIF_CVAR_NUMBER, string = "Test CVar Number", color = 0, func = nil, cvar = CV_FindVar("inttime"), pos_y = 52},
-			{id = MIT_STRING, flags = MIF_DISABLED, string = "Test Disabled", color = 0, func = nil, cvar = nil, pos_y = 72},
-		}
-	},
-	{
-		attributes = {
-			pos = {30, 30},
-			header = {text = "Top Secret Cheats", color = V_YELLOWMAP},
-			start = {item = 2},
-			previous = {page = 1, item = 3},
-			style = MMT_NORMAL
-		},
-		functions = {handler = nil, ticker = nil, drawer = nil},
-		content = {
-			{id = MIT_HEADER, flags = 0, string = "Use with caution", color = 0, func = nil, cvar = nil, pos_y = 0},
-			{id = MIT_STRING, flags = 0, string = "Teleport to Area 51...", color = 0, func = nil, cvar = nil, pos_y = 12},
-			{id = MIT_STRING, flags = 0, string = "Remove Tails...", color = 0, func = nil, cvar = nil, pos_y = 22},
-			{id = MIT_STRING, flags = MIF_FUNCTION, string = "Restart the universe...", color = V_REDMAP, func = test_function2, cvar = nil, pos_y = 102},
-		}
-	}
-}*/
-
 local function LM_ThinkFrame()
 	if not LM_ActiveMenu() then return end
 	
 	input.setMouseGrab(false)
 	LM_ExecuteThinker()
+
+	if (menu_framework.current[menu_framework.page].attributes.music ~= nil) then
+		if (S_MusicName() ~= menu_framework.current[menu_framework.page].attributes.music) then
+			previous_music = S_MusicName()
+			previous_time = S_GetMusicPosition()
+	
+			if (previous_musicmenu ~= menu_framework.current[menu_framework.page].attributes.music) then
+				previous_timemenu = 0
+			end
+			
+			S_ChangeMusic(menu_framework.current[menu_framework.page].attributes.music, true, consoleplayer, 0, previous_timemenu)
+		end
+	else
+		if (previous_music == "") then
+			previous_music = S_MusicName()
+		end
+	
+		if (S_MusicName() ~= previous_music) then
+			previous_musicmenu = S_MusicName()
+			previous_timemenu = S_GetMusicPosition()
+			
+			S_ChangeMusic(previous_music, true, consoleplayer, mapmusflags, previous_time)
+		end
+	end
 end
 addHook("PreThinkFrame", LM_ThinkFrame)
 
@@ -262,6 +249,36 @@ local function JM_DrawMenuTitle(v, menu)
 	end
 end
 
+local function JM_GetHeaderColor(color)
+	local front, back;
+
+	// me when switch is die
+	if (color == V_YELLOWMAP) then front = 73
+	elseif (color == V_MAGENTAMAP) then front = 178
+	elseif (color == V_GREENMAP) then front = 98
+	elseif (color == V_BLUEMAP) then front = 147
+	elseif (color == V_REDMAP) then front = 33
+	elseif (color == V_GRAYMAP) then front = 10
+	elseif (color == V_ORANGEMAP) then front = 52
+	elseif (color == V_SKYMAP) then front = 130
+	elseif (color == V_PURPLEMAP) then front = 161
+	elseif (color == V_AQUAMAP) then front = 121
+	elseif (color == V_PERIDOTMAP) then front = 188
+	elseif (color == V_AZUREMAP) then front = 145
+	elseif (color == V_BROWNMAP) then front = 221
+	elseif (color == V_ROSYMAP) then front = 201
+	elseif (color == V_INVERTMAP) then
+		front = 26
+		back = 4
+	else
+		-- when a colormap flag aint valid, default it to a white header!
+		front = 4
+		back = 25
+	end
+
+	return front, back
+end
+
 local function LM_DrawStandardMenu(v, menu)
 	JM_DrawMenuTitle(v, menu)
 
@@ -297,10 +314,12 @@ local function LM_DrawStandardMenu(v, menu)
 	
 		elseif (item.id == MIT_HEADER) then
 			local color_flag = (item.color or V_YELLOWMAP)
+			local front, back = JM_GetHeaderColor(color_flag)
+
 			v.drawString(19, menu.attributes.pos[2] + item.pos_y, item.string, V_ALLOWLOWERCASE|color_flag, "left")
-			v.drawFill(19, (menu.attributes.pos[2] + item.pos_y) + 9, 281, 1, 73);
-			v.drawFill(300, (menu.attributes.pos[2] + item.pos_y) + 9, 1, 1, 31);
-			v.drawFill(19, (menu.attributes.pos[2] + item.pos_y) + 10, 282, 1, 31);
+			v.drawFill(19, (menu.attributes.pos[2] + item.pos_y) + 9, 281, 1, front)
+			v.drawFill(300, (menu.attributes.pos[2] + item.pos_y) + 9, 1, 1, back)
+			v.drawFill(19, (menu.attributes.pos[2] + item.pos_y) + 10, 282, 1, back)
 		end
 	end
 	v.drawScaled((menu.attributes.pos[1] - 24) * FRACUNIT, (menu.attributes.pos[2] + cursor_y) * FRACUNIT, FRACUNIT, v.cachePatch("M_CURSOR"))
@@ -371,10 +390,12 @@ local function LM_DrawScrollMenu(v, menu)
 		
 		elseif (item.id == MIT_HEADER) then
 			local color_flag = (item.color and item.color or V_YELLOWMAP)
+			local front, back = JM_GetHeaderColor(color_flag)
+
 			v.drawString(19, string_position, item.string, V_ALLOWLOWERCASE|color_flag, "left")
-			v.drawFill(19, string_position + 9, 281, 1, 73);
-			v.drawFill(300, string_position + 9, 1, 1, 26);
-			v.drawFill(19, string_position + 10, 281, 1, 26);
+			v.drawFill(19, string_position + 9, 281, 1, front)
+			v.drawFill(300, string_position + 9, 1, 1, back)
+			v.drawFill(19, string_position + 10, 282, 1, back)
 		end
 	end
 	v.drawScaled((menu.attributes.pos[1] - 24) * FRACUNIT, (menu.attributes.pos[2] + cursor_y) * FRACUNIT, FRACUNIT, v.cachePatch("M_CURSOR"))

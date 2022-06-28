@@ -7,18 +7,20 @@ local sorted_players = {}
 local cv_nametags = CV_RegisterVar({
 	name = "nametags",
 	defaultvalue = "On",
+	flags = CV_MODIFIED,
 	PossibleValue = CV_OnOff
 })
 
 local cv_showownname = CV_RegisterVar({
 	name = "nametags_showown",
 	defaultvalue = "Off",
+	flags = CV_MODIFIED,
 	PossibleValue = CV_OnOff
 })
 
 addHook("HUD", function(v, player, camera)
 	if not cv_nametags.value then return end
-	
+
 	local width = 320
 	local height = 200
 	local realwidth = v.width()/v.dupx()
@@ -31,17 +33,16 @@ addHook("HUD", function(v, player, camera)
 	local hudwidth = 320*FRACUNIT
 	local hudheight = (320*v.height()/v.width()) * FRACUNIT
 
-	local fov = (CV_FindVar("fov").value/FRACUNIT)*ANG1 --Can this be fetched live instead of assumed?
+	local fov = (CV_FindVar("fov").value/FRACUNIT) * ANG1 --Can this be fetched live instead of assumed?
 	
 	--the "distance" the HUD plane is projected from the player
 	local hud_distance = FixedDiv(hudwidth / 2, tan(fov/2))
 
 	for _, target_player in pairs(sorted_players) do
-		if not target_player.valid or not target_player.mo then continue end
 		local tmo = target_player.mo
 
-		if not tmo.valid then continue end
-		if not cv_showownname.value and player == target_player then continue end
+		if (target_player.spectator) or not (tmo and tmo.valid) then continue end
+		if (not cv_showownname.value) and (player == target_player) then continue end
 
 		--how far away is the other player?
 		local distance = R_PointToDist(tmo.x, tmo.y)
@@ -100,8 +101,8 @@ addHook("HUD", function(v, player, camera)
 
 		local name = target_player.name
 		local namefont = "thin-fixed-center"
-		
-		local nameflags = skincolors[target_player.skincolor].chatcolor
+		local nameflags = (target_player.skincolor > 0) and skincolors[target_player.skincolor].chatcolor or 0
+	
 		local distedit = max(0, distance - (distlimit*FRACUNIT/2)) * 2
 		local trans = min(9, (((distedit * 10) / FRACUNIT) / distlimit)) * V_10TRANS
 	

@@ -25,40 +25,12 @@ addHook("MapChange", function()
 	end
 end)
 
-addHook("PlayerThink", function(player)
-	if (player.realmo and player.realmo.valid and VSviewplayer ~= nil and netgame) then
-		if player.VSmessagetimer then player.VSmessagetimer = $ - 1 end
-		
-		if leveltime > 6 * TICRATE and player.jointime > 6 * TICRATE and leveltime % 2 == 0 then
-			COM_BufInsertText(player, "__VSignore " .. #VSviewplayer)
-		end
-		
-		if not player.VSaudience then player.VSaudience = {} end
-	
-		if player.VSspectating ~= nil then
-			if player.VSspectating ~= #player and not (player.realmo.VSspectatoricon and player.realmo.VSspectatoricon.valid) then
-				player.realmo.VSspectatoricon = P_SpawnMobjFromMobj(player.realmo, 0, 0, 0, MT_VSSPECTATORICON)
-				player.realmo.VSspectatoricon.target = player.realmo
-			end
-			
-			for i = 0, 31 do
-				if player.VSaudience[i] ~= nil
-				and (players[player.VSaudience[i]] == nil or players[player.VSaudience[i]].VSspectating ~= #player) then
-					player.VSaudience[i] = nil
-				end
-				
-				if player.VSspectating ~= #player then
-					for i = 0, 31 do
-						if players[player.VSspectating].VSaudience[i] == #player then return end
-					end
-					
-					if players[player.VSspectating].VSaudience[i] == nil then
-						players[player.VSspectating].VSaudience[i] = #player
-					end
-				end
-			end
-		end
-	end
+COM_AddCommand("__VSignore", function(player, stplyrindex)
+	if netgame then player.VSspectating = tonumber(stplyrindex) end
+end)
+
+addHook("PlayerMsg", function(source, msgtype, target, msg)
+	if msgtype == 0 and netgame then source.VSmessagetimer = TICRATE * 5 end
 end)
 
 addHook("MobjThinker", function(mobj)
@@ -94,10 +66,6 @@ addHook("MobjThinker", function(mobj)
 		end
 	end
 end, MT_VSSPECTATORICON)
-
-addHook("PlayerMsg", function(source, msgtype, target, msg)
-	if msgtype == 0 and netgame then source.VSmessagetimer = TICRATE * 5 end
-end)
 
 addHook("HUD", function(v, stplyr)
 	if netgame then VSviewplayer = stplyr end
@@ -219,6 +187,38 @@ addHook("HUD", function(v, stplyr)
 	end
 end, "game")
 
-COM_AddCommand("__VSignore", function(player, stplyrindex)
-	if netgame then player.VSspectating = tonumber(stplyrindex) end
+addHook("PlayerThink", function(player)
+	if (player.realmo and player.realmo.valid and VSviewplayer ~= nil and netgame) then
+		if player.VSmessagetimer then player.VSmessagetimer = $ - 1 end
+		
+		if (leveltime > 6 * TICRATE) and (player.jointime > 6 * TICRATE) and (leveltime % 2 == 0) then
+			COM_BufInsertText(player, "__VSignore " .. #VSviewplayer)
+		end
+		
+		if not player.VSaudience then player.VSaudience = {} end
+	
+		if player.VSspectating ~= nil then
+			if player.VSspectating ~= #player and not (player.realmo.VSspectatoricon and player.realmo.VSspectatoricon.valid) then
+				player.realmo.VSspectatoricon = P_SpawnMobjFromMobj(player.realmo, 0, 0, 0, MT_VSSPECTATORICON)
+				player.realmo.VSspectatoricon.target = player.realmo
+			end
+			
+			for i = 0, 31 do
+				if player.VSaudience[i] ~= nil
+				and (players[player.VSaudience[i]] == nil or players[player.VSaudience[i]].VSspectating ~= #player) then
+					player.VSaudience[i] = nil
+				end
+				
+				if player.VSspectating ~= #player then
+					for i = 0, 31 do
+						if players[player.VSspectating].VSaudience[i] == #player then return end
+					end
+					
+					if players[player.VSspectating].VSaudience[i] == nil then
+						players[player.VSspectating].VSaudience[i] = #player
+					end
+				end
+			end
+		end
+	end
 end)
