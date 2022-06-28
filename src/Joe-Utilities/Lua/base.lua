@@ -120,6 +120,11 @@ JoeBase.GetCountdownLogic = function(timer)
 	return tics, downwards
 end
 
+// Basic easing shit so i wont be repeating the same code over and over again
+JoeBase.GetEasingTics = function(ticker)
+	return (FRACUNIT / TICRATE) * max(min(ticker, TICRATE), 0)
+end
+
 /*
 Might use this in the future...
 

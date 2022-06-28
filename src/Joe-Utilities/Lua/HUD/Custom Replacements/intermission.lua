@@ -307,7 +307,7 @@ local IH_DrawIntermission = function(v, stagefailed)
 	// Animations
 	//
 
-	local inter_anim = (FRACUNIT / TICRATE) * max(min(inter_tics, TICRATE), 0)
+	local inter_anim = JoeBase.GetEasingTics(inter_tics)
 	local inter_trueanims = {
 		-- zigzags
 		[0] = ease.outexpo(inter_anim, 200, 0),
@@ -418,12 +418,10 @@ local IH_DrawIntermission = function(v, stagefailed)
 		if (inter.info == nil) then continue end
 		
 		local bonus_type = (inter.reward == INT_TOTAL) and inter_struct.totalscore or inter.info
-
-		local x = (inter.reward == INT_TOTAL) and 252 or 272
 		local y = 93 + (16 * (i - 1))
 
 		v.draw(132 - inter_trueanims[2], y, v.cachePatch(inter.patch), flags)
-		v.drawNum(x + inter_trueanims[2], y + 1, bonus_type, flags)
+		v.drawNum(272 + inter_trueanims[2], y + 1, bonus_type, flags)
 	end
 end
 
