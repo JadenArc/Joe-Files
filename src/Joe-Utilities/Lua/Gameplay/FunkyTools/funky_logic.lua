@@ -78,7 +78,7 @@ local function P_ForceFlagsEffects()
 		if (player.force_godmode) then
 			local ghost = P_SpawnGhostMobj(mo)
 			ghost.fuse = 2
-			ghost.frame = $ | (FF_ADD|FF_TRANS30)
+			ghost.frame = $ | FF_ADD
 
 			ghost.spritexscale = scaled
 			ghost.spriteyscale = scaled
@@ -86,7 +86,7 @@ local function P_ForceFlagsEffects()
 			// followitems exist too!
 			if JoeBase.IsValid(ghost.tracer) then
 				ghost.tracer.fuse = ghost.fuse
-				ghost.tracer.frame = $ | (FF_ADD|FF_TRANS30)
+				ghost.tracer.frame = $ | FF_ADD
 
 				ghost.tracer.spritexscale = ghost.spritexscale
 				ghost.tracer.spriteyscale = ghost.spriteyscale

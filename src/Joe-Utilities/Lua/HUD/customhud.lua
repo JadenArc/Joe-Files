@@ -7,7 +7,10 @@
 // Boss health bar
 //
 
+local boss = nil
 local boss_ticker = 0
+
+local boss_maxdist = 4096 * FRACUNIT
 
 local boss_names = {
 	// Vanilla Bosses...
@@ -15,78 +18,70 @@ local boss_names = {
 	[MT_EGGMOBILE2] = "Egg Slimer",
 	[MT_EGGMOBILE3] = "Sea Egg",
 	[MT_EGGMOBILE4] = "Egg Colosseum",
+	
 	[MT_FANG] = "Fang",
 	[MT_METALSONIC_BATTLE] = "Metal Sonic",
+	
 	[MT_CYBRAKDEMON] = "Black Eggman",
 	[MT_BLACKEGGMAN] = "Brak Eggman"
 }
 
+// get the boss object (just one, for consistency.)
+addHook("BossThinker", function(mo) boss = mo end)
+
 // animations, basic thing since drawFill ignores translucency.
 addHook("MapLoad", do boss_ticker = 0 end)
-
-addHook("HUD", function(v, player, ticker, endticker)
-	-- where it starts to fade in
-	if (ticker >= 75) then
-		boss_ticker = $ + 1
-	end
-end, "titlecard")
-
-local HL_GetBossInfo = function(player)
-	local boss_health, total_health = 0, 0
-
-	local boss_maxdist = 3064*FRACUNIT
-	local boss_inpain = false
-	local boss_name = "Boss"
-
-	// Instead of looking for a boss in a map, do searchBlockmap.
-	// With that, we can find ALL the bosses in a map instead of just one.
-	local mo = player.realmo
-
-	local x1, x2 = mo.x - boss_maxdist, mo.x + boss_maxdist 
-	local y1, y2 = mo.y - boss_maxdist, mo.y + boss_maxdist
-
-	searchBlockmap("objects", function(boss_prev, boss)
-		if (boss.flags & MF_BOSS) and not (boss.flags2 & MF2_BOSSDEAD) and (boss.health ~= nil) then				
-			boss_health = $ + boss.health
-			total_health = $ + boss.info.spawnhealth
-
-			if (boss.flags2 & MF2_FRET) then boss_inpain = true end
-
-			if boss_names[boss.type] then
-				boss_name = boss_names[boss.type]
-			end
-		end
-
-	end, mo, x1, x2, y1, y2)
-
-	return boss_health, total_health, boss_inpain, boss_name
-end
 
 local HU_DrawBossBar = function(v, player)
 	local x, y = 160, 187
 	local flags = V_SNAPTOBOTTOM
 	
-	local animate_things = JoeBase.GetEasingTics(boss_ticker)
-	local boss_anims = ease.outback(animate_things, 320, y)
+	local bar_width, bar_height = 68, 10
 
-	local boss_health, total_health, boss_inpain, boss_name = HL_GetBossInfo(player)
+	// dont draw this if our boss doesnt exist!
+	if not JoeBase.IsValid(boss) then return end
+
+	local bar_color = ((boss.flags2 & MF2_FRET) and (leveltime % 2)) and 1 or 36
 	
-	local bar_width, bar_height = 94, 10
-	local bar_color = (boss_inpain and (leveltime % 2)) and 1 or 36
+	//
+	-- Timing with animations
+	//
 
-	// dont draw this if we dont have any health! (or else, divide by zero, and thats illegal)
-	if not (boss_health) then return end
+	// if some boss is alive, increase the timer!
+	if (boss.health and (leveltime >= 15)) then
+		boss_ticker = min($ + 1, 64)
+		
+	// do some fade out if the boss is completely dead.
+	elseif (boss.health <= 0) then
+		boss_ticker = max(0, $ - 1)
+	end
+
+	-- lolxd
+	local animate_things = JoeBase.GetEasingTics(boss_ticker)
+	local boss_anims = ease.inoutback(animate_things, 320, y)
+
+	//
+	-- Drawing logic
+	//
+
+	// dont draw it if its dead!
+	if (boss.flags2 & MF2_BOSSDEAD) and (boss.health == nil) then return end
+
+	if not (R_PointToDist2(player.mo.x, player.mo.y, boss.x, boss.y) < boss_maxdist) then return end
 
 	-- fancy bar
-	local bar_health = FixedInt(FixedDiv(boss_health * FRACUNIT, total_health * FRACUNIT) * bar_width)
-			
-	v.drawFill(x - (bar_width / 2), boss_anims - 2, bar_width, bar_height, 31|flags)
-	v.drawFill(x + 2 - (bar_width / 2), boss_anims, bar_health - 4, bar_height - 4, bar_color|flags)
+	local bar_health = FixedInt(FixedDiv(boss.health * FRACUNIT, boss.info.spawnhealth * FRACUNIT) * bar_width)
+				
+	v.drawFill(x - (bar_width / 2), boss_anims - 2, bar_width, bar_height, 31|flags) -- Big black bar
+	v.drawFill(x + 2 - (bar_width / 2), boss_anims, bar_width - 4, bar_height - 4, 47|flags) -- dark bar
+
+	v.drawFill(x + 2 - (bar_width / 2), boss_anims, bar_health - 4, bar_height - 4, bar_color|flags) -- light bar that represents health
 
 	-- name, current health and total health,
-	local boss_string = boss_health .. " / " .. total_health
+	local boss_name = boss_names[boss.type] or "Boss"
+	local boss_string = boss.health .. " / " .. boss.info.spawnhealth
 
-	v.drawString(x, boss_anims - 11, boss_name, V_YELLOWMAP|V_ALLOWLOWERCASE|flags, "center")
+	v.drawString(x, boss_anims - 10, boss_name, V_YELLOWMAP|V_ALLOWLOWERCASE|flags, "thin-center")
 	v.drawString(x, boss_anims, boss_string, V_40TRANS|flags, "thin-center")
 end
 addHook("HUD", HU_DrawBossBar, "game")
