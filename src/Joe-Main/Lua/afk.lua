@@ -16,19 +16,27 @@ local cv_afkkick = CV_RegisterVar({
 	possiblevalue = {MIN = 5, MAX = 20}
 })
 
+// LOLXD
+local function not_moving(ex)
+	return (abs(ex) < FRACUNIT)
+end
+
+local function intTo60Minutes(a, b)
+	return (a == (b * (60 * TICRATE)))
+end
+
 // some bars
 local P_AFKVariables = function()
 	for player in players.iterate do
-		player.afk = $ or false
-		player.afk_timer = $ or 0
-		player.afk_delay = $ or 0
-		player.afk_vars =  $ or {}
-
-		if not (player.quittime > 0) then
-			player.afk_delay = max(0, $ - 1)
-		end
+		player.afk = $ or {
+			enabled = false,
+			--delay = 0,
+			total_time = 0,
+			previous = {}
+		}
 	end
 end
+addHook("PreThinkFrame", P_AFKVariables)
 
 local function P_ToggleAFK(player)
 	if not (gamestate == GS_LEVEL) then
@@ -36,118 +44,122 @@ local function P_ToggleAFK(player)
 		return
 	end
 	
-	if player.spectator then
-		CONS_Printf(player, "Being AFK on spectator mode? You're crazy.")
+	if (player.spectator) then
+		CONS_Printf(player, "Your are trying to be AFK on spectator mode? That's crazy!")
 		return
 	end
-	
-	if player.afk_delay then
-		CONS_Printf(player, "Please wait " .. player.afk_delay/TICRATE .. " seconds to continue.")
-		return
-	end
-	
-	player.afk = not player.afk
-	
-	if player.afk then
-		if not player.exiting then
-			player.exiting = 1
+
+	local mo = player.realmo
+	player.afk.enabled = not $
+
+	if (player.afk.enabled) then
+		if (mo) then
+			player.afk.previous = {
+				x = mo.x,
+				y = mo.y,
+				z = mo.z,
+				momx = mo.momx,
+				momy = mo.momy,
+				momz = mo.momz
+			}
 		end
 		
-		if player.realmo then
-			player.afk_vars = {x = player.realmo.x, y = player.realmo.y, z = player.realmo.z, momx = player.realmo.momx, momy = player.realmo.momy, momz = player.realmo.momz}
-		end
-		chatprint("\x82" .. "* " .. player.name .. "\x82" .. " is now AFK.")
+		chatprint("\x82* \x80" .. player.name .. "\x82 is now AFK.")
 	else
-		player.realmo.flags2 = $ & ~(MF2_SHADOW)
-		player.afk_timer = 0
-		player.exiting = 0
-	
-		player.afk_vars = {}
-		chatprint("\x82" .. "* " .. player.name .. "\x82" .. " is no longer AFK.")
+		player.afk.previous = {}
+		chatprint("\x82* \x80" .. player.name .. "\x82 is no longer AFK.")
 	end
-	player.afk_delay = 10*TICRATE
 end
+COM_AddCommand("afk", P_ToggleAFK)
 
 local function P_AFKSetup(player)
-	if player.afk then
-		if player.realmo then
-			player.afk_vars = {x = player.realmo.x, y = player.realmo.y, z = player.realmo.z, momx = player.realmo.momx, momy = player.realmo.momy, momz = player.realmo.momz}
-		end
-		
-		player.exiting = 1
+	local mo = player.realmo
+
+	if not (player.afk) then return end
+
+	if (player.afk.enabled) and (mo) then
+		player.afk.previous = {
+			x = mo.x,
+			y = mo.y,
+			z = mo.z,
+			momx = mo.momx,
+			momy = mo.momy,
+			momz = mo.momz
+		}
 	else
-		player.afk = false
-		player.afk_vars = {}
+		player.afk.enabled = false
+		player.afk.previous = {}
 	end
 end
+addHook("PlayerSpawn", P_AFKSetup)
 
 local function P_AFKThink()
 	for player in players.iterate do
-		if player.afk then
+		local mo = player.realmo
+
+		if (player.afk.enabled) then
 			player.powers[pw_flashing] = 2
 			player.powers[pw_nocontrol] = 2
+
+			local previous = player.afk.previous
 			
-			if player.realmo then
-				P_TeleportMove(player.realmo, player.afk_vars.x, player.afk_vars.y, player.afk_vars.z)
+			if (mo) then
+				P_TeleportMove(mo, previous.x, previous.y, previous.z)
 				
-				player.realmo.momx, player.realmo.momy, player.realmo.momz = player.afk_vars.momx, player.afk_vars.momy, player.afk_vars.momz
+				mo.momx, mo.momy, mo.momz = previous.momx, previous.momy, previous.momz
 				
-				player.realmo.flags2 = $ | MF2_SHADOW & ~(MF2_DONTDRAW)
+				mo.flags2 = $ | MF2_SHADOW
 				player.pflags = $ | PF_INVIS
 			end
-			
-			--player.realtime = 209999
 		end
 
-		if player.realmo and not (player.quittime > 0) then
-			local afk_calculate = ((abs(player.realmo.momx) < FRACUNIT) and (abs(player.realmo.momy) < FRACUNIT) and (abs(player.realmo.momz) < FRACUNIT))
+		if (mo and not (player.quittime > 0)) then
+			// XDLOL		
+			if (not_moving(mo.momx) and not_moving(mo.momy) and not_moving(mo.momz)) then
+				player.afk.total_time = $ + 1
 			
-			if afk_calculate then
-				player.afk_timer = $ + 1
-			
-				if not player.afk and (player.afk_timer == (cv_afkdelay.value * (60*TICRATE))) then
-					player.afk_delay = 0
+				if (not player.afk.enabled) and intTo60Minutes(player.afk.total_time, cv_afkdelay.value) then
 					P_ToggleAFK(player)
-					player.afk_delay = 15 * TICRATE
 					
 					chatprintf(player, "\x82" .. "* You're now AFK for idling for too long.")
 				end
 				
-				if player.afk and (player.afk_timer == (cv_afkkick.value * (60*TICRATE))) then
+				if (player.afk.enabled) and intTo60Minutes(player.afk.total_time, cv_afkkick.value) then
 					if not (server == player) then
 						COM_BufInsertText(server, 'kick ' .. #player .. ' "Idling for too long"')
 					end
 				end
 			else
-				player.afk_timer = 0
+				player.afk.total_time = 0
 			end
 		end
 	end
 end
+addHook("PostThinkFrame", P_AFKThink)
 
+local afk_ticker = 0
 local function P_AFKHud(v, player)
 	local x = 160
 	local y1, y2 = 16, 168
 
-	if player.afk then
-		M_DrawBox(v, x-137, y1-11, 32, 3, 0)
-		v.drawString(x, y1, "You're AFK", V_YELLOWMAP|V_ALLOWLOWERCASE, "center")
-		v.drawString(x, y1+9, "Type" .. "\x82 " .. "\"afk\"" .. "\x80 on the console again to quit this mode.", V_ALLOWLOWERCASE, "thin-center")
-
-		M_DrawBox(v, x-148, y2-13, 35, 3, 0)
-		v.drawString(x, y2, "You are either here because you entered" .. "\x82 " .. "\"afk\"" .. "\x80 on the console,", V_ALLOWLOWERCASE, "thin-center")
-		v.drawString(x, y2+8, "or either been out of the game for 2 minutes.", V_ALLOWLOWERCASE, "thin-center")
+	if (player.afk.enabled) then
+		afk_ticker = min($ + 1, TICRATE)
+	else
+		afk_ticker = max(0, $ - 1)
 	end
+
+	local animation = (FRACUNIT / TICRATE) * max(min(afk_ticker, TICRATE), 0)
+	local anims = {
+		[0] = ease.inoutback(animation, -320, y1),
+		[1] = ease.inoutback(animation, 320, y2)
+	}
+
+	M_DrawBox(v, x-137, anims[0] - 11, 32, 3, 0)
+	v.drawString(x, anims[0], "You're AFK.", V_YELLOWMAP|V_ALLOWLOWERCASE, "center")
+	v.drawString(x, anims[0] + 9, "Type\x82 \"afk\" \x80on the console again to quit this mode.", V_ALLOWLOWERCASE, "thin-center")
+
+	M_DrawBox(v, x-148, anims[1] - 13, 35, 3, 0)
+	v.drawString(x, anims[1], "You are either here because you entered\x82 \"afk\" \x80on the console,", V_ALLOWLOWERCASE, "thin-center")
+	v.drawString(x, anims[1] + 8, "or either been out of the game for 2 minutes.", V_ALLOWLOWERCASE, "thin-center")
 end
-
-//
-// Hookers
-//
-
-addHook("PreThinkFrame", P_AFKVariables)
-
-addHook("PlayerSpawn", P_AFKSetup)
-addHook("PostThinkFrame", P_AFKThink)
 addHook("HUD", P_AFKHud, "game")
-
-COM_AddCommand("afk", P_ToggleAFK)
