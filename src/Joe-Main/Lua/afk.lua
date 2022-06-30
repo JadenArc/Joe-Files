@@ -2,14 +2,14 @@
 -- AFK system
 //
 
-local cv_afk_delay = CV_RegisterVar({
+local cv_afkdelay = CV_RegisterVar({
 	name = "afk_delay",
 	defaultvalue = 2,
 	flags = CV_NETVAR,
 	possiblevalue = {MIN = 2, MAX = 10}
 })
 
-local cv_afk_kick = CV_RegisterVar({
+local cv_afkkick = CV_RegisterVar({
 	name = "afk_kick",
 	defaultvalue = 5,
 	flags = CV_NETVAR,
@@ -25,7 +25,7 @@ local P_AFKVariables = function()
 		player.afk_vars =  $ or {}
 
 		if not (player.quittime > 0) then
-			player.afk_delay = max($ - 1, 0)
+			player.afk_delay = max(0, $ - 1)
 		end
 	end
 end
@@ -105,7 +105,7 @@ local function P_AFKThink()
 			if afk_calculate then
 				player.afk_timer = $ + 1
 			
-				if not player.afk and (player.afk_timer == (cv_afk_delay.value * (60*TICRATE))) then
+				if not player.afk and (player.afk_timer == (cv_afkdelay.value * (60*TICRATE))) then
 					player.afk_delay = 0
 					P_ToggleAFK(player)
 					player.afk_delay = 15 * TICRATE
@@ -113,7 +113,7 @@ local function P_AFKThink()
 					chatprintf(player, "\x82" .. "* You're now AFK for idling for too long.")
 				end
 				
-				if player.afk and (player.afk_timer == (cv_afk_kick.value * (60*TICRATE))) then
+				if player.afk and (player.afk_timer == (cv_afkkick.value * (60*TICRATE))) then
 					if not (server == player) then
 						COM_BufInsertText(server, 'kick ' .. #player .. ' "Idling for too long"')
 					end

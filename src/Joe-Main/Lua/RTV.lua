@@ -6,10 +6,19 @@ local function R_ClearRTV()
 	end
 end
 
+//
+// Toggling
+//
+
 local function R_DoRTV(source)
 	if (server.RTV_cooldown) then
-		chatprintf(source, "\x84* RTV is on cooldown. Please wait \x82" .. server.RTV_cooldown / TICRATE .. " seconds \x84to continue.", true)
-		return false
+		chatprintf(source, "\x82* RTV is on cooldown. Please wait \x80" .. server.RTV_cooldown / TICRATE .. " seconds \x82to continue.", true)
+		return true
+	end
+
+	if (source.RTV) then
+		chatprintf(source, "\x82* You already cast either a RTV call, or a vote for it!")
+		return true
 	end
 		
 	source.RTV = true
@@ -26,9 +35,11 @@ local function R_DoRTV(source)
 	local rtvneeded = (playercount/2) + 1
 		
 	if (rtvamount < rtvneeded) then
-		chatprint("\x83* " .. source.name .. " wants to skip this map. (\x82" .. rtvamount .. "\x83 votes, \x82" .. rtvneeded.. "\x83 needed)", true)
+		chatprint("\x82* " .. source.name .. " wants to skip this map. (\x80" .. rtvamount .. "\x83 votes, \x80" .. rtvneeded.. "\x86 needed)", true)
+	
+		server.RTV_active = true
 	else
-		chatprint("\x83* Vote requirement reached. Exiting the level...", true)
+		chatprint("\x82* Vote requirement reached. Exiting the level...", true)
 		R_ClearRTV()
 		bluescore, redscore = 0, 0
 		
@@ -36,6 +47,7 @@ local function R_DoRTV(source)
 		for player in players.iterate do player.score = 0 end
 		G_ExitLevel()
 			
+		server.RTV_active = false
 		server.RTV_cooldown = 60*TICRATE
 	end
 end
@@ -48,10 +60,10 @@ local R_MsgRTV = function(source, msgtype, target, msg)
 	
 	if (msg:sub(1, 3):lower() == "rtv") then
 		R_DoRTV(source)
-
 		return true
 	end
 end
+addHook("PlayerMsg", R_MsgRTV)
 
 local R_CmdRTV = function(player)
 	if not (netgame) then return end
@@ -60,9 +72,43 @@ local R_CmdRTV = function(player)
 
 	R_DoRTV(player)
 end
-
-addHook("PlayerMsg", R_MsgRTV)
 COM_AddCommand("rtv", R_CmdRTV)
+
+//
+// HUD
+//
+
+local R_RTVHud = function(v, ...)
+	if not (server.RTV_active) then return end
+	
+	local playercount, rtvamount = 0, 0
+	
+	for player in players.iterate do
+		playercount = $ + 1
+	
+		if player.RTV then
+			rtvamount = $ + 1
+		end
+	end
+	
+	local rtvneeded = (playercount/2) + 1
+
+	local x, y = 257, 180
+
+	local bw = 78
+	local bh = 20
+	v.drawFill(x - (bw/2), y - (bh/3), bw, bh, 27)
+	
+	v.drawString(x, y, "Vote for:\x82 exitlevel", V_ALLOWLOWERCASE, "small-center")
+	
+	local votes = string.format("\x83%d \x80| \x86%d", rtvamount, rtvneeded)
+	v.drawString(x, y + 5, votes, 0, "small-center")
+end
+addHook("HUD", R_RTVHud, "game")
+
+//
+// Functions
+//
 
 addHook("ThinkFrame", function()
 	if not (server) return end
@@ -75,6 +121,7 @@ end)
 addHook("MapChange", do
 	R_ClearRTV() -- Don't preserve RTV between maps
 	server.RTV_intermission = 0 -- Intermission has ended
+	server.RTV_active = false
 end)
 
 addHook("IntermissionThinker", do

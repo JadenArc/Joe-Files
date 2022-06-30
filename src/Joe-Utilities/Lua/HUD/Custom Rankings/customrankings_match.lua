@@ -10,7 +10,7 @@ local function V_DrawPlayerHighlight(v, player, x, y, scale)
 	local patches = {}
 
 	for i = 0, 8 do
-		local buffer = string.format("BIG_HIGH%s", i + 1)
+		local buffer = string.format("BIG_HIGH%d", i + 1)
 		patches[i] = v.cachePatch(buffer)
 	end
 
