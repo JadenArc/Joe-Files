@@ -25,15 +25,23 @@ local function intTo60Minutes(a, b)
 	return (a == (b * (60 * TICRATE)))
 end
 
+local function getPluralString(a, str)
+	return (a == 1) and (a .. str) or (a .. str .. "s")
+end
+
 // some bars
 local P_AFKVariables = function()
 	for player in players.iterate do
 		player.afk = $ or {
 			enabled = false,
-			--delay = 0,
+			delay = 0,
 			total_time = 0,
 			previous = {}
 		}
+
+		if not (player.quittime > 0) then
+			player.afk.delay = max(0, $ - 1)
+		end
 	end
 end
 addHook("PreThinkFrame", P_AFKVariables)
@@ -46,6 +54,11 @@ local function P_ToggleAFK(player)
 	
 	if (player.spectator) then
 		CONS_Printf(player, "Your are trying to be AFK on spectator mode? That's crazy!")
+		return
+	end
+
+	if (player.afk.delay) then
+		CONS_Printf(player, "Wow! Slow down over there, you have \x82" .. getPluralString((player.afk.delay / TICRATE) + 1, " second") .. "\x80 left.")
 		return
 	end
 
@@ -63,12 +76,18 @@ local function P_ToggleAFK(player)
 				momz = mo.momz
 			}
 		end
+
+		if not (player.exiting) then player.exiting = 1 end
 		
 		chatprint("\x82* \x80" .. player.name .. "\x82 is now AFK.")
 	else
+		player.exiting = 0
+
 		player.afk.previous = {}
 		chatprint("\x82* \x80" .. player.name .. "\x82 is no longer AFK.")
 	end
+
+	player.afk.delay = 10 * TICRATE -- 10 seconds until you can become AFK again.
 end
 COM_AddCommand("afk", P_ToggleAFK)
 
@@ -120,6 +139,7 @@ local function P_AFKThink()
 			
 				if (not player.afk.enabled) and intTo60Minutes(player.afk.total_time, cv_afkdelay.value) then
 					P_ToggleAFK(player)
+					player.afk.delay = 5 * TICRATE -- You left by mistake, isn't it?
 					
 					chatprintf(player, "\x82" .. "* You're now AFK for idling for too long.")
 				end
