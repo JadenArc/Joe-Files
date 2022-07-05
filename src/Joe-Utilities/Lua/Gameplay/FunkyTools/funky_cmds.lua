@@ -14,26 +14,26 @@ end
 local P_ResetSuper = function(player)
 	player.powers[pw_super] = 0 -- do not remove the super flag, you wont be super if you press spin after all
 	player.powers[pw_flashing] = TICRATE
-	
+
 	P_SpawnShieldOrb(player) -- if you had a shield, restore it!
-	
+
 	P_FlashPal(player, PAL_WHITE, 5)
 	player.realmo.color = player.skincolor
-		
+
 	P_RestoreMusic(player)
 	S_StartSound(player.realmo, sfx_s3k66)
 end
 
 //
 -- Let's start with the admin-only commands.
-// 
+//
 
 -- emeralds, lol...
 CV_RegisterVar({
-	name = "emeralds", 
+	name = "emeralds",
 	defaultvalue = "No",
 	flags = CV_NETVAR | CV_CALL | CV_NOINIT,
-	possiblevalue = CV_YesNo, 
+	possiblevalue = CV_YesNo,
 	func = function(var)
 		local emflags = 127 -- result of all emerald flags
 
@@ -85,7 +85,7 @@ local function CMD_KillCommand(player, target)
 
     if (target > 32 or target < 0) then return end
 
-     if players[target] == nil then 
+     if players[target] == nil then
     	CONS_Printf(player, "That player doesn't exist! Aborting...")
     	return
     end
@@ -112,7 +112,7 @@ local function CMD_DoforCommand(player, arg1, arg2)
         CONS_Printf(player, '\x82' .. 'dofor <node/all/server> <command>\x80: Inserts a command on the selected node.')
         return
     end
-	
+
 	if (arg2 == nil) then
 		CONS_Printf(player, "Please supply a console command to make dofor work correctly.")
 		return
@@ -123,7 +123,7 @@ local function CMD_DoforCommand(player, arg1, arg2)
             COM_BufInsertText(player2, arg2)
         end
         return
-    end		
+    end
 
     if (arg1 == "server") then
     	COM_BufInsertText(server, arg2)
@@ -162,7 +162,7 @@ local function CMD_GotoCommand(player, target)
 
     if JoeBase.IsValid(player.mo) and JoeBase.IsValid(target.mo) then
         P_TeleportMove(player.mo, target.mo.x, target.mo.y, target.mo.z)
-		
+
 		P_FlashPal(player, PAL_MIXUP, 10)
 		S_StartSound(player.realmo, sfx_litng1) -- again
     end
@@ -177,7 +177,7 @@ local function CMD_RallyCommand(player)
 		CONS_Printf(player, "You don't exist, so players can't teleport to you now.")
 		return
 	end
-	
+
 	for player2 in players.iterate do
 		if JoeBase.IsValid(player.mo) and JoeBase.IsValid(player2.mo) then
 			if player2 ~= player then
@@ -187,7 +187,7 @@ local function CMD_RallyCommand(player)
 			end
 		end
 	end
-	
+
 	print(JoeBase.GetPlayerName(player, false, false) .. "\x80 rallied everyone to them.")
 end
 COM_AddCommand("rally", CMD_RallyCommand, COM_ADMIN)
@@ -224,7 +224,7 @@ local function CMD_ScaleToCommand(p, target, scale)
 		CONS_Printf(p, "Please supply a value to make this work properly.")
 		return
 	end
-	
+
 	if target == "all" then
 		for all in players.iterate do
 		   if JoeBase.IsValid(all.mo) then
@@ -266,7 +266,7 @@ local function CMD_SpawnobjectCommand(player, object)
 
     if JoeBase.IsValid(player.mo) then
 		local result = P_SpawnMobjFromMobj(player.mo, 0, 0, 8*FRACUNIT, object)
- 		
+
  		result.angle = player.mo.angle
 		P_SetScale(result, player.mo.scale)
     end
@@ -278,7 +278,7 @@ local function CMD_KillEnemiesCommand(player)
 	if G_IsNotOnLevel(player) then return end
 
     for object in mobjs.iterate("mobj") do
-        if (object.flags & MF_ENEMY) or (object.flags & MF_BOSS) then
+        if (object.flags & (MF_ENEMY|MF_BOSS)) then
             P_KillMobj(object, nil, player.mo)
         end
     end
@@ -292,12 +292,12 @@ local function CMD_DoPrint(player, typeof, message)
 		CONS_Printf(player, "types: Standard, Notice, Warning, Error")
 		return
 	end
-	
+
 	if not message then
 		message = typeof
 		typeof = "s"
 	end
-	
+
 	local subber = string.sub(string.lower(typeof), 1, 1)
 	if subber == "n" then
 		print("\x83".."NOTICE: \x80"..message)
@@ -324,7 +324,7 @@ local function CMD_FreezeCommand(player, target)
 		return
 	end
 
-	local all 
+	local all
 
     if (target == "all") then
     	for allplayers in players.iterate do
@@ -352,7 +352,7 @@ local function CMD_FreezeCommand(player, target)
 
     if (target > 32 or target < 0) then return end
 
-     if players[target] == nil then 
+     if players[target] == nil then
     	CONS_Printf(player, "That player doesn't exist! Aborting...")
     	return
     end
@@ -426,7 +426,7 @@ local shieldList = {
 
 local function CMD_ShieldCommand(player, arg1)
 	if G_IsNotOnLevel(player) then return end
-	
+
 	if not arg1 then
 		CONS_Printf(player, "\x82shield <number>\x80: Change your shield! Valid values are from 1 to 11.")
 		return
@@ -436,14 +436,14 @@ local function CMD_ShieldCommand(player, arg1)
 		CONS_Printf(player, "\x82" .. arg1 .. "\x80 is not a valid option.")
 		return
 	end
-	
+
 	local shieldselected = tonumber(arg1)
-	
+
 	if (shieldselected < 0) or (shieldselected > 10) then
 		CONS_Printf(player, "\x85" .. "ERROR: " .. "\x80Number out of range (0 - 10)")
 		return
 	end
-	
+
 	local shieldData = shieldList[shieldselected]
 
 	P_SwitchShield(player, shieldData.value)
@@ -474,7 +474,7 @@ local function CMD_SuperToggle(player, playerid)
 		end
 		return
 	end
-	
+
 	playerid = tonumber(playerid)
 
 	if (playerid == nil) then
@@ -496,12 +496,12 @@ local function CMD_SuperToggle(player, playerid)
 	end
 
 	local player_selected = players[playerid]
-	
+
 	if (player_selected == nil) then
 		CONS_Printf(player, "\x85" .. "ERROR: " .. "\x80That player doesn't exist!")
 		return
 	end
-		
+
 	if not player_selected.powers[pw_super] then
 		player_selected.charflags = $ | SF_SUPER
 		player_selected.rings = $ + 100
@@ -583,12 +583,12 @@ local function CMD_ScaleCommand(player, scale)
 	if G_IsNotOnLevel(player) then return end
 
 	local nScale = J_DoFloatNumber(scale)
-	
+
 	if scale == nil then
 		CONS_Printf(player, "\x82scale <value>\x80: Change your scale by setting a number!")
 		return
 	end
-	
+
 	if (tonumber(nScale)) and (nScale > 0) then
 		player.mo.destscale = nScale
 	end
@@ -615,7 +615,7 @@ COM_AddCommand("shoes", CMD_ShoesCommand)
 -- invuln, oh my god i hate saying "self-explanatory" too many times
 local function CMD_InvulnCommand(player, time)
 	if G_IsNotOnLevel(player) then return end
-	
+
 	if not time then
 		CONS_Printf(player, "\x82invuln <time>\x80: give yourself invulnerability")
 		return

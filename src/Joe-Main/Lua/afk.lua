@@ -25,8 +25,8 @@ local function intTo60Minutes(a, b)
 	return (a == (b * (60 * TICRATE)))
 end
 
-local function getPluralString(a, str)
-	return (a == 1) and (a .. str) or (a .. str .. "s")
+local function getPlural(a, str)
+	return (a == 1) and str or (str .. "s")
 end
 
 // some bars
@@ -58,7 +58,10 @@ local function P_ToggleAFK(player)
 	end
 
 	if (player.afk.delay) then
-		CONS_Printf(player, "Wow! Slow down over there, you have \x82" .. getPluralString((player.afk.delay / TICRATE) + 1, " second") .. "\x80 left.")
+		local time_left = (player.afk.delay / TICRATE) + 1
+		local str = string.format("Wow! Slow down over there, you have \x82%d %s \x80 left.", time_left, getPlural(time_left, "second"))
+	
+		CONS_Printf(player, str)
 		return
 	end
 

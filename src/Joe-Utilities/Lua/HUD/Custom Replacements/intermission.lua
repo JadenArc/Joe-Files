@@ -2,8 +2,7 @@
 -- Custom Intermission
 -- By Jaden
 --
--- TODO: This can be more organized...
--- Note: This wont look that smooth on netgames (especially if you have bad ping, ofc)
+-- This may be ugly if you have some shitty internet.
 //
 
 local inter_tics = 0
@@ -93,11 +92,11 @@ local function I_GetGuardBonus(player)
 	local times = player.timeshit
 
 	// Time shit! Wait, WAI-
-	if     (times == 0) bonus = 10000
-	elseif (times == 1) bonus = 5000
-	elseif (times == 2) bonus = 1000
-	elseif (times == 3) bonus = 500
-	elseif (times == 4) bonus = 100
+	if     (times == 0) then bonus = 10000
+	elseif (times == 1) then bonus = 5000
+	elseif (times == 2) then bonus = 1000
+	elseif (times == 3) then bonus = 500
+	elseif (times == 4) then bonus = 100
 	end
 
 	return bonus

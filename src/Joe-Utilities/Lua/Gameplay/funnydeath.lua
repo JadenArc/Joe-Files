@@ -104,7 +104,7 @@ local function ActualDeathLogic(mo, inf, src, dmt)
 	else
 		mo.flags = $ | MF_NOGRAVITY &~ (MF_NOCLIP|MF_NOCLIPHEIGHT)
 					
-		mo.momx, mo.momy = $/4, $/4
+		mo.momx, mo.momy = $1 / 4, $2 / 4
 		mo.fuse = 30
 
 		P_SetObjectMomZ(mo, 16*FRACUNIT, false)

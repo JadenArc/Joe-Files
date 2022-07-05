@@ -3,9 +3,9 @@
 // dont rawset everything, make a table for it
 rawset(_G, "JoeBase", {})
 
-// 
+//.
 --
--- Definitions 
+-- Definitions
 --
 //
 
@@ -156,7 +156,7 @@ JoeRankings.drawPing = function(v, player, x, y)
 
 	local ping = player.cmd.latency -- sadly, player.ping doesnt exist, unlike kart.
 	local gfxnum = 4
-	
+
 	if (ping <= 3) then -- excellent
 		gfxnum = 0
 	elseif (ping <= 6) then -- good
@@ -165,7 +165,7 @@ JoeRankings.drawPing = function(v, player, x, y)
 		gfxnum = 2
 	elseif (ping > 9) then -- bad
 		gfxnum = 3
-	end 
+	end
 
 	if (player.quittime > 0) then -- brazil which means you arent with us anymore
 		gfxnum = 4
@@ -177,12 +177,12 @@ end
 
 -- Do a timer.
 JoeRankings.DoTimer = function(total, cent)
-	if (total == nil or total >= 999999) then 
+	if (total == nil or total >= 999999) then
 		return "N/A"
 	end
 
 	local result = ""
-	
+
 	local pad = "%02d"
 	local centiseconds = string.format(pad, G_TicsToCentiseconds(total))
 	local seconds = string.format(pad, G_TicsToSeconds(total))
@@ -204,7 +204,7 @@ JoeRankings.DoIcons = function(v, x, y, flags, type, color)
 	local flag_ico = "FLAG_ICO"
 	local team_ico = "TEAM_ICO"
 	local it_ico = "IT_ICO"
-	
+
 	local afk_ico = "AFK_ICO" .. tostring(((leveltime % TICRATE)*235)/1000)
 
 	local patch
@@ -218,7 +218,7 @@ JoeRankings.DoIcons = function(v, x, y, flags, type, color)
 	end
 
 	color = $ or SKINCOLOR_WHITE
-	
+
 	v.drawScaled(x*FRACUNIT, y*FRACUNIT, FRACUNIT/2, v.cachePatch(patch), flags, v.getColormap(TC_DEFAULT, color))
 end
 
@@ -240,16 +240,16 @@ local J_SpectatorTicker = function(v)
 	if (#spec_table > 0) then
 		for i, player in pairs(spec_table) do
 			local k = (i == #spec_table) and "" or "   "
-				
+
 			text = $ + player.name .. k
 			length = v.stringWidth(text)
 		end
-						
+
 		offset = $ + 1	
 		if (offset >= (basewidth + length)) then
 			offset = 0
 		end
-			
+
 		v.drawString(basewidth - offset, 189, text, V_ALLOWLOWERCASE|V_50TRANS)
 
 	else
@@ -272,7 +272,7 @@ JoeRankings.Coop_CacheStuff = function(v, t1)
 		local flags = V_60TRANS
 		local patch = v.cachePatch("TEMER" .. (i + 1))
 		local x = 6 + (10 * i)
-		
+
 		if (emeralds & (EMERALD1 << i)) then flags = 0 end
 		v.draw(x, 9, patch, V_SNAPTOLEFT|flags)
 	end
@@ -284,7 +284,7 @@ JoeRankings.Coop_CacheStuff = function(v, t1)
 	local emb_patch = v.getSpritePatch(SPR_EMBM, H)
 
 	local x, y = 302, 16
-	
+
 	if JoeBase.MP_EmblemsTotal ~= 0 then
 		v.drawScaled(x*FRACUNIT, (y+5)*FRACUNIT, FRACUNIT/2, emb_patch, V_SNAPTORIGHT, v.getColormap(TC_DEFAULT, SKINCOLOR_MINT))
 		v.drawString(x - 18, y - 6, emb_str, V_SNAPTORIGHT, "thin-right")
@@ -335,12 +335,12 @@ JoeRankings.Match_CacheStuff = function(v)
 
 		if (gametyperules & GTR_TEAMFLAGS) then
 			local redplayers, blueplayers
-			
+
 			for player in players.iterate do
 				if (player.gotflag & GF_REDFLAG) then
 					redplayers = player
 				end
-				
+
 				if (player.gotflag & GF_BLUEFLAG) then
 					blueplayers = player
 				end
@@ -357,7 +357,7 @@ JoeRankings.Match_CacheStuff = function(v)
 				str_b = string.format("%s\x80 has the \x84%s\x80!", JoeBase.GetPlayerName(blueplayers, false, false), "Blue Flag")
 			end
 		end
-		
+
 		JoeRankings.DoIcons(v, x, 5, V_SNAPTORIGHT, diff_ico, skincolor_redteam)
 		JoeRankings.DoIcons(v, x, 13, V_SNAPTORIGHT, diff_ico, skincolor_blueteam)
 
